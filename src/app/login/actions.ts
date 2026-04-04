@@ -1,12 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getTrimmedField } from "@/lib/forms";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-function getTrimmedField(formData: FormData, key: string) {
-  return (formData.get(key) as string | null)?.trim() ?? "";
-}
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();

@@ -1,23 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { acceptApplication, declineApplication, organizationSignOut } from "./actions";
-
-type OrganizationEvent = {
-  id: string;
-  title: string;
-  address: string | null;
-  status: string;
-  created_at: string;
-  max_volunteers: number;
-  event_applications: { id: string }[];
-};
-
-type ApplicationReview = {
-  id: string;
-  event_id: string;
-  status: string;
-  volunteers: { name: string; contact_email: string | null }[] | null;
-};
+import type { ApplicationReview, OrganizationEvent } from "@/types/organization";
+import { organizationSignOut, updateOrganizationProfileName } from "./actions";
+import CurrentEventsMenu from "./_components/CurrentEventsMenu";
+import HostedEventsList from "./_components/HostedEventsList";
 
 export default async function OrganizationPage() {
   const supabase = await createClient();
@@ -42,7 +28,7 @@ export default async function OrganizationPage() {
 
   const { data: eventsData } = await supabase
     .from("events")
-    .select("id, title, address, status, created_at, max_volunteers, event_applications(id)")
+    .select("id, title, address, status, created_at, max_volunteers, event_applications(id, status)")
     .eq("org_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -56,7 +42,7 @@ export default async function OrganizationPage() {
   const { data: applicationsData } = eventIds.length
     ? await supabase
         .from("event_applications")
-        .select("id, event_id, status, volunteers(name, contact_email)")
+        .select("id, event_id, status, volunteers(name, contact_email, skills, completed_hours, completed_events, rating)")
         .in("event_id", eventIds)
         .order("applied_at", { ascending: false })
     : { data: [] };
@@ -81,70 +67,32 @@ export default async function OrganizationPage() {
           <div className="flex gap-2">
             <details className="relative">
               <summary className="cursor-pointer list-none rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900">
-                Current events
+                Profile
               </summary>
-              <div className="absolute right-0 top-full z-10 mt-2 w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                {currentEvents.length > 0 ? (
-                  <div className="space-y-2">
-                    {currentEvents.map((event) => (
-                      <div key={event.id} className="rounded-md border border-gray-200 px-3 py-2 text-xs">
-                        <p className="font-semibold text-gray-800">{event.title}</p>
-                        <p className="text-gray-600">Address: {event.address || "Not specified"}</p>
-                        <p className="text-gray-600">Status: {event.status}</p>
-                        <p className="text-gray-600">Applicants: {event.event_applications?.length ?? 0}</p>
+              <div className="absolute right-0 top-full z-10 mt-2 w-72 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                <p className="text-sm font-semibold text-gray-900">{organization?.name || "Organization"}</p>
+                <p className="mt-1 text-xs text-gray-500">{organization?.contact_email || user.email}</p>
 
-                        <div className="mt-2 space-y-2">
-                          {(applicationsByEvent[event.id] ?? []).length > 0 ? (
-                            (applicationsByEvent[event.id] ?? []).map((application) => {
-                              const volunteer = application.volunteers?.[0];
-                              const isPendingReview =
-                                application.status === "Applied" ||
-                                application.status === "Waitlisted" ||
-                                application.status === "Needs skill verification";
-
-                              return (
-                                <div key={application.id} className="rounded border border-gray-200 bg-gray-50 p-2">
-                                  <p className="font-medium text-gray-800">{volunteer?.name || "Volunteer"}</p>
-                                  <p className="text-gray-600">{volunteer?.contact_email || "No email"}</p>
-                                  <p className="text-gray-600">Application status: {application.status}</p>
-
-                                  {isPendingReview ? (
-                                    <div className="mt-1 flex gap-1">
-                                      <form action={acceptApplication}>
-                                        <input type="hidden" name="applicationId" value={application.id} />
-                                        <button
-                                          type="submit"
-                                          className="rounded border border-gray-300 px-2 py-1 text-[11px] font-medium text-gray-900"
-                                        >
-                                          Accept
-                                        </button>
-                                      </form>
-                                      <form action={declineApplication}>
-                                        <input type="hidden" name="applicationId" value={application.id} />
-                                        <button
-                                          type="submit"
-                                          className="rounded border border-gray-300 px-2 py-1 text-[11px] font-medium text-gray-900"
-                                        >
-                                          Decline
-                                        </button>
-                                      </form>
-                                    </div>
-                                  ) : null}
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p className="text-gray-500">No applications to review.</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">No recruiting or ongoing events.</p>
-                )}
+                <form action={updateOrganizationProfileName} className="mt-4 space-y-2">
+                  <label className="block text-xs uppercase tracking-wide text-gray-500" htmlFor="org-profile-name">
+                    Organization name
+                  </label>
+                  <input
+                    id="org-profile-name"
+                    name="name"
+                    defaultValue={organization?.name || ""}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900"
+                  >
+                    Save name
+                  </button>
+                </form>
               </div>
             </details>
+            <CurrentEventsMenu currentEvents={currentEvents} applicationsByEvent={applicationsByEvent} />
             <Link href="/org/events/new" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
               Create new event
             </Link>
@@ -156,23 +104,7 @@ export default async function OrganizationPage() {
           </div>
         </div>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">All hosted events</h2>
-          <div className="mt-4 space-y-3">
-            {allEvents.length > 0 ? (
-              allEvents.map((event) => (
-                <div key={event.id} className="rounded-md border border-gray-200 p-3 text-sm">
-                  <p className="font-semibold text-gray-900">{event.title}</p>
-                  <p className="text-gray-600">Address: {event.address || "Not specified"}</p>
-                  <p className="text-gray-600">Status: {event.status}</p>
-                  <p className="text-gray-600">Applicants: {event.event_applications?.length ?? 0}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">No events created yet.</p>
-            )}
-          </div>
-        </section>
+        <HostedEventsList allEvents={allEvents} />
       </div>
     </main>
   );

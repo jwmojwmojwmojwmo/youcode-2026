@@ -1,9 +1,13 @@
 "use server";
 
+import { getTrimmedField } from "@/lib/forms";
+import { APPLICATION_STATUSES } from "@/lib/application-status";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { STAMPS, VERIFIED_STAMPS } from "@/lib/stamps";
+
+type VerifiedStamp = (typeof VERIFIED_STAMPS)[number];
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
@@ -12,10 +16,10 @@ export async function signOut(): Promise<void> {
 }
 
 export async function requestSkillVerification(formData: FormData): Promise<void> {
-  const stamp = String(formData.get("stamp") ?? "");
+  const stamp = getTrimmedField(formData, "stamp");
   const proof = formData.get("proof");
 
-  if (!VERIFIED_STAMPS.includes(stamp as (typeof VERIFIED_STAMPS)[number])) {
+  if (!VERIFIED_STAMPS.includes(stamp as VerifiedStamp)) {
     return;
   }
 
@@ -32,7 +36,7 @@ export async function requestSkillVerification(formData: FormData): Promise<void
 
 export async function updateProfileName(formData: FormData): Promise<void> {
   const supabase = await createClient();
-  const name = String(formData.get("name") ?? "").trim();
+  const name = getTrimmedField(formData, "name");
 
   if (!name) {
     return;
@@ -107,7 +111,7 @@ export async function applyToEvent(eventId: string, _formData: FormData): Promis
     .eq("volunteer_id", volunteerId)
     .maybeSingle();
 
-  if (existingApplication && existingApplication.status !== "Withdrawn") {
+  if (existingApplication && existingApplication.status !== APPLICATION_STATUSES.WITHDRAWN) {
     return;
   }
 
@@ -116,24 +120,25 @@ export async function applyToEvent(eventId: string, _formData: FormData): Promis
 
   const isQualified = needed.every((skill: string) => earned.includes(skill));
 
-  const { count: applicationCount } = await supabase
+  const { count: acceptedCount } = await supabase
     .from("event_applications")
     .select("id", { count: "exact", head: true })
     .eq("event_id", eventId)
-    .neq("status", "Withdrawn");
+    .eq("status", APPLICATION_STATUSES.ACCEPTED);
 
   const nextStatus = !isQualified
-    ? "Needs skill verification"
-    : (applicationCount ?? 0) >= event.max_volunteers
-      ? "Waitlisted"
-      : "Applied";
+    ? APPLICATION_STATUSES.NEEDS_SKILL_VERIFICATION
+    : (acceptedCount ?? 0) >= event.max_volunteers
+      ? APPLICATION_STATUSES.WAITLISTED
+      : APPLICATION_STATUSES.APPLIED;
 
-  if (existingApplication && existingApplication.status === "Withdrawn") {
+  if (existingApplication && existingApplication.status === APPLICATION_STATUSES.WITHDRAWN) {
     await supabase
       .from("event_applications")
       .update({ status: nextStatus, applied_at: new Date().toISOString() })
       .eq("id", existingApplication.id);
     revalidatePath("/");
+    revalidatePath("/org");
     return;
   }
 
@@ -149,4 +154,5 @@ export async function applyToEvent(eventId: string, _formData: FormData): Promis
   }
 
   revalidatePath("/");
+  revalidatePath("/org");
 }

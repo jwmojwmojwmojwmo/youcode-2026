@@ -33,12 +33,6 @@ export default async function OrganizationLoginPage({ searchParams }: OrgLoginPa
         <form className="mt-6 flex flex-col gap-3">
           <input
             className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-            name="orgName"
-            type="text"
-            placeholder="Organization name (signup only)"
-          />
-          <input
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
             name="email"
             type="email"
             placeholder="Organization email"

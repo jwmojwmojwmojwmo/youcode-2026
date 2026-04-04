@@ -1,0 +1,291 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { STAMPS } from "@/lib/stamps";
+
+type StampValue = (typeof STAMPS)[keyof typeof STAMPS];
+
+function getTrimmedField(formData: FormData, key: string) {
+  return (formData.get(key) as string | null)?.trim() ?? "";
+}
+
+function parseStringList(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeTags(tags: string[]) {
+  return [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];
+}
+
+async function ensureOrganizationProfile(userId: string, email: string | null, name?: string) {
+  const supabase = await createClient();
+  const orgName = name?.trim() || email || "Organization";
+
+  await supabase.from("organizations").upsert(
+    {
+      id: userId,
+      name: orgName,
+      contact_email: email
+    },
+    { onConflict: "id" }
+  );
+}
+
+export async function organizationSignup(formData: FormData) {
+  const supabase = await createClient();
+
+  const email = getTrimmedField(formData, "email");
+  const password = getTrimmedField(formData, "password");
+  const orgName = getTrimmedField(formData, "orgName");
+
+  const { error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    redirect(`/org/login?error=${encodeURIComponent(error.message)}`);
+  }
+
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    await ensureOrganizationProfile(data.user.id, data.user.email ?? email, orgName);
+  }
+
+  revalidatePath("/org");
+  redirect("/org");
+}
+
+export async function organizationLogin(formData: FormData) {
+  const supabase = await createClient();
+
+  const email = getTrimmedField(formData, "email");
+  const password = getTrimmedField(formData, "password");
+
+  if (!email || !email.includes("@")) {
+    redirect("/org/login?error=invalid-email");
+  }
+
+  if (!password) {
+    redirect("/org/login?error=invalid-password");
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    redirect("/org/login?error=invalid-credentials");
+  }
+
+  if (data.user) {
+    await ensureOrganizationProfile(data.user.id, data.user.email ?? email);
+  }
+
+  revalidatePath("/org");
+  redirect("/org");
+}
+
+export async function organizationSignOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/org/login");
+}
+
+export async function createOrganizationEvent(formData: FormData) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/org/login");
+  }
+
+  const title = getTrimmedField(formData, "eventTitle");
+  const description = getTrimmedField(formData, "eventDescription") || null;
+  const address = getTrimmedField(formData, "eventAddress") || null;
+  const hoursGiven = Number(getTrimmedField(formData, "volunteerHours") || "0");
+  const maxVolunteers = Number(getTrimmedField(formData, "maxVolunteers") || "1");
+  const compensation = parseStringList(getTrimmedField(formData, "compensationOptions"));
+  const submittedTags = formData.getAll("eventTags").map((value) => String(value));
+  const tags = normalizeTags(submittedTags);
+  const selectedSkills = formData.getAll("requiredSkills").map((value) => String(value));
+  const legacySkills = parseStringList(getTrimmedField(formData, "requiredSkills"));
+  const allowedSkills = new Set<StampValue>(Object.values(STAMPS));
+  const isAllowedSkill = (skill: string): skill is StampValue => allowedSkills.has(skill as StampValue);
+  const skillsNeededRaw = selectedSkills.length > 0 ? selectedSkills : legacySkills;
+  const hasInvalidSkill = skillsNeededRaw.some((skill) => !isAllowedSkill(skill));
+  const skillsNeeded = [...new Set(skillsNeededRaw)].filter(isAllowedSkill);
+  const latRaw = getTrimmedField(formData, "locationLatitude");
+  const lngRaw = getTrimmedField(formData, "locationLongitude");
+
+  if (!title) {
+    redirect("/org/events/new?error=title-required");
+  }
+
+  if (hasInvalidSkill) {
+    redirect("/org/events/new?error=invalid-required-skills");
+  }
+
+  const payload: {
+    org_id: string;
+    title: string;
+    description: string | null;
+    address: string | null;
+    hours_given: number;
+    compensation: string[] | null;
+    skills_needed: string[] | null;
+    lat: number | null;
+    lng: number | null;
+    max_volunteers: number;
+    status: string;
+  } = {
+    org_id: data.user.id,
+    title,
+    description,
+    address,
+    hours_given: Number.isFinite(hoursGiven) ? hoursGiven : 0,
+    compensation: compensation.length > 0 ? compensation : null,
+    skills_needed: skillsNeeded.length > 0 ? skillsNeeded : null,
+    lat: latRaw ? Number(latRaw) : null,
+    lng: lngRaw ? Number(lngRaw) : null,
+    max_volunteers: Number.isFinite(maxVolunteers) && maxVolunteers > 0 ? maxVolunteers : 1,
+    status: "recruiting"
+  };
+
+  const { data: createdEvent, error } = await supabase.from("events").insert(payload).select("id").single();
+
+  if (error || !createdEvent) {
+    redirect(`/org/events/new?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (tags.length > 0) {
+    const tagIds: string[] = [];
+
+    for (const tagName of tags) {
+      const { data: existingTag } = await supabase
+        .from("tags")
+        .select("id")
+        .ilike("name", tagName)
+        .maybeSingle();
+
+      if (existingTag?.id) {
+        tagIds.push(existingTag.id);
+        continue;
+      }
+
+      const { data: insertedTag } = await supabase
+        .from("tags")
+        .insert({ name: tagName })
+        .select("id")
+        .single();
+
+      if (insertedTag?.id) {
+        tagIds.push(insertedTag.id);
+      }
+    }
+
+    if (tagIds.length > 0) {
+      const links = tagIds.map((tagId) => ({ event_id: createdEvent.id, tag_id: tagId }));
+      await supabase.from("event_tags").insert(links);
+    }
+  }
+
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("hosted_events")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (org) {
+    await supabase
+      .from("organizations")
+      .update({ hosted_events: (org.hosted_events ?? 0) + 1 })
+      .eq("id", data.user.id);
+  }
+
+  revalidatePath("/org");
+  redirect("/org");
+}
+
+async function updateEventStatusForCapacity(eventId: string, maxVolunteers: number) {
+  const supabase = await createClient();
+
+  const { count: acceptedCount } = await supabase
+    .from("event_applications")
+    .select("id", { count: "exact", head: true })
+    .eq("event_id", eventId)
+    .eq("status", "Accepted");
+
+  const isFilled = (acceptedCount ?? 0) >= maxVolunteers;
+
+  await supabase
+    .from("events")
+    .update({ status: isFilled ? "ongoing" : "recruiting" })
+    .eq("id", eventId);
+}
+
+export async function acceptApplication(formData: FormData) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/org/login");
+  }
+
+  const applicationId = getTrimmedField(formData, "applicationId");
+
+  if (!applicationId) {
+    return;
+  }
+
+  const { data: application } = await supabase
+    .from("event_applications")
+    .select("id, event_id, events!inner(id, org_id, max_volunteers)")
+    .eq("id", applicationId)
+    .single();
+
+  const eventRow = Array.isArray(application?.events) ? application.events[0] : application?.events;
+
+  if (!application || !eventRow || eventRow.org_id !== data.user.id) {
+    return;
+  }
+
+  await supabase.from("event_applications").update({ status: "Accepted" }).eq("id", applicationId);
+  await updateEventStatusForCapacity(eventRow.id, eventRow.max_volunteers);
+
+  revalidatePath("/org");
+  revalidatePath("/");
+}
+
+export async function declineApplication(formData: FormData) {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/org/login");
+  }
+
+  const applicationId = getTrimmedField(formData, "applicationId");
+
+  if (!applicationId) {
+    return;
+  }
+
+  const { data: application } = await supabase
+    .from("event_applications")
+    .select("id, event_id, events!inner(id, org_id, max_volunteers)")
+    .eq("id", applicationId)
+    .single();
+
+  const eventRow = Array.isArray(application?.events) ? application.events[0] : application?.events;
+
+  if (!application || !eventRow || eventRow.org_id !== data.user.id) {
+    return;
+  }
+
+  await supabase.from("event_applications").update({ status: "Declined" }).eq("id", applicationId);
+  await updateEventStatusForCapacity(eventRow.id, eventRow.max_volunteers);
+
+  revalidatePath("/org");
+  revalidatePath("/");
+}

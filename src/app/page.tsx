@@ -7,6 +7,7 @@ type EventCard = {
   id: string;
   title: string;
   description: string | null;
+  address: string | null;
   hours_given: number;
   max_volunteers: number;
   organizations: { name: string } | null;
@@ -271,6 +272,8 @@ export default async function Home() {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {event.description}
                     </p>
+
+                    <p className="text-gray-600 text-sm mb-4">Address: {event.address || "Not specified"}</p>
 
                     <div className="flex justify-between items-end border-t border-gray-100 pt-4 mt-4">
                       <div className="text-sm font-medium text-gray-500">

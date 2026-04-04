@@ -61,11 +61,15 @@ export async function applyToEvent(eventId: string, _formData: FormData): Promis
   }
 
   const [{ data: event, error: eventError }, { data: volunteerData, error: volunteerError }] = await Promise.all([
-    supabase.from("events").select("id, max_volunteers, skills_needed").eq("id", eventId).single(),
+    supabase.from("events").select("id, status, max_volunteers, skills_needed").eq("id", eventId).single(),
     supabase.from("volunteers").select("id, skills").eq("id", volunteerId).single()
   ]);
 
   if (eventError || !event) {
+    return;
+  }
+
+  if ((event.status || "").toLowerCase() !== "recruiting") {
     return;
   }
 

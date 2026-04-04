@@ -38,16 +38,33 @@ export interface Database {
           description: string | null
           hours_given: number
           compensation: string[] | null
-          tags: string[] | null
           skills_needed: string[] | null
           lat: number | null
           lng: number | null
+          address: string | null
           max_volunteers: number
           status: string
           created_at: string
         }
-        Insert: Optional<Database["public"]["Tables"]["events"]["Row"], "id" | "description" | "compensation" | "tags" | "skills_needed" | "lat" | "lng" | "status" | "created_at">
+        Insert: Optional<Database["public"]["Tables"]["events"]["Row"], "id" | "description" | "compensation" | "skills_needed" | "lat" | "lng" | "status" | "created_at">
         Update: Partial<Database["public"]["Tables"]["events"]["Row"]>
+      }
+      tags: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: Optional<Database["public"]["Tables"]["tags"]["Row"], "id" | "created_at">
+        Update: Partial<Database["public"]["Tables"]["tags"]["Row"]>
+      }
+      event_tags: {
+        Row: {
+          event_id: string
+          tag_id: string
+        }
+        Insert: Database["public"]["Tables"]["event_tags"]["Row"]
+        Update: Partial<Database["public"]["Tables"]["event_tags"]["Row"]>
       }
       event_applications: {
         Row: {

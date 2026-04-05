@@ -87,8 +87,15 @@ export default async function VolunteerProgressionPage() {
         </section>
 
         <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
-          <p className="kicker">Credentials</p>
-          <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Skills and verification</h2>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="kicker">Credentials</p>
+              <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Skills and verification</h2>
+            </div>
+            <Link href="/volunteer/certificate" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
+              Official record of service
+            </Link>
+          </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <article className="rounded-[1.25rem] border border-slate-200 bg-white p-4">
@@ -187,8 +194,15 @@ export default async function VolunteerProgressionPage() {
         </section>
 
         <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
-          <p className="kicker">Milestones</p>
-          <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Progress milestones</h2>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="kicker">Milestones</p>
+              <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Progress milestones</h2>
+            </div>
+            <Link href="/volunteer/certificate" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
+              Official record of service
+            </Link>
+          </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <div className="rounded-[1rem] border border-slate-200 bg-white p-3">

@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import type { EventCard, VolunteerApplication, VolunteerProfile } from "@/types/volunteer";
 import VolunteerHeaderMenus from "./volunteer/_components/VolunteerHeaderMenus";
-import VolunteerEventGrid from "./volunteer/_components/VolunteerEventGrid";
+import VolunteerEventBrowser from "./volunteer/_components/VolunteerEventBrowser";
+
+type EventQueryRow = Omit<EventCard, "tags"> & {
+  event_tags?: { tags?: { name: string | null } | null }[] | null;
+};
 
 export default async function Home() {
   const supabase = await createClient();
@@ -28,12 +32,13 @@ export default async function Home() {
   const myApplications = (applicationsData ?? []) as VolunteerApplication[];
   const applicationStatusByEvent = new Map(myApplications.map((application) => [application.event_id, application.status]));
 
-  const { data: events, error } = await supabase
+  const { data: eventsData, error } = await supabase
     .from("events")
     .select(`
       *,
-      organizations ( name ),
-      event_applications ( id, status )
+      organizations ( id, name ),
+      event_applications ( id, status ),
+      event_tags ( tags ( name ) )
     `)
     .order("created_at", { ascending: false });
 
@@ -46,13 +51,25 @@ export default async function Home() {
     );
   }
 
+  const rawEvents = (eventsData ?? []) as EventQueryRow[];
+  const formattedEvents: EventCard[] = rawEvents.map((event) => {
+    const tags = (event.event_tags ?? [])
+      .map((eventTag) => eventTag.tags?.name)
+      .filter((tag): tag is string => Boolean(tag));
+
+    return {
+      ...event,
+      tags
+    };
+  });
+
   return (
     <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Live Volunteer Map</h1>
-            <p className="mt-1 text-sm text-gray-600">Browse events and check your profile from here.</p>
+            <p className="mt-1 text-sm text-gray-600">Browse events, search, and sort by what matters most to you.</p>
           </div>
 
           <VolunteerHeaderMenus
@@ -63,9 +80,10 @@ export default async function Home() {
           />
         </div>
 
-        <VolunteerEventGrid
-          events={(events ?? []) as EventCard[]}
+        <VolunteerEventBrowser
+          events={formattedEvents}
           isSignedIn={Boolean(user)}
+          profile={profile}
           applicationStatusByEvent={applicationStatusByEvent}
         />
       </div>

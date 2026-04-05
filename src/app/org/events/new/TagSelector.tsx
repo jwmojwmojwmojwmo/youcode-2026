@@ -4,15 +4,17 @@ import { useMemo, useState } from "react";
 
 type TagSelectorProps = {
   existingTags: string[];
+  selectedTags: string[];
+  onAddTag: (tag: string) => void;
+  onRemoveTag: (tag: string) => void;
 };
 
 function normalizeTag(value: string) {
   return value.trim();
 }
 
-export default function TagSelector({ existingTags }: TagSelectorProps) {
+export default function TagSelector({ existingTags, selectedTags, onAddTag, onRemoveTag }: TagSelectorProps) {
   const [inputValue, setInputValue] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const suggestions = useMemo(() => {
     const query = inputValue.trim().toLowerCase();
@@ -25,23 +27,12 @@ export default function TagSelector({ existingTags }: TagSelectorProps) {
       .slice(0, 5);
   }, [existingTags, inputValue, selectedTags]);
 
-  const addTag = (rawTag: string) => {
+  const handleAdd = (rawTag: string) => {
     const tag = normalizeTag(rawTag);
-    if (!tag) {
-      return;
-    }
-
-    if (selectedTags.some((selected) => selected.toLowerCase() === tag.toLowerCase())) {
-      setInputValue("");
-      return;
-    }
-
-    setSelectedTags((previous) => [...previous, tag]);
+    if (!tag) return;
+    
+    onAddTag(tag);
     setInputValue("");
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setSelectedTags((previous) => previous.filter((tag) => tag !== tagToRemove));
   };
 
   return (
@@ -55,7 +46,7 @@ export default function TagSelector({ existingTags }: TagSelectorProps) {
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            addTag(inputValue);
+            handleAdd(inputValue);
           }
         }}
         placeholder="Add tag"
@@ -68,8 +59,8 @@ export default function TagSelector({ existingTags }: TagSelectorProps) {
             <button
               key={tag}
               type="button"
-              onClick={() => addTag(tag)}
-              className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-800"
+              onClick={() => handleAdd(tag)}
+              className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-800 transition-colors hover:bg-gray-50"
             >
               {tag}
             </button>
@@ -82,8 +73,12 @@ export default function TagSelector({ existingTags }: TagSelectorProps) {
           {selectedTags.map((tag) => (
             <span key={tag} className="inline-flex items-center gap-2 rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">
               {tag}
-              <button type="button" onClick={() => removeTag(tag)} className="text-gray-600">
-                x
+              <button 
+                type="button" 
+                onClick={() => onRemoveTag(tag)} 
+                className="text-gray-500 hover:text-gray-900"
+              >
+                ×
               </button>
               <input type="hidden" name="eventTags" value={tag} />
             </span>

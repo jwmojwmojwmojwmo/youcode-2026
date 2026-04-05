@@ -5,9 +5,10 @@ import { APPLICATION_STATUSES } from "@/lib/application-status";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { STAMPS, VERIFIED_STAMPS } from "@/lib/stamps";
+import { SELF_DECLARED_STAMPS, VERIFIED_STAMPS } from "@/lib/stamps";
 
 type VerifiedStamp = (typeof VERIFIED_STAMPS)[number];
+type SelfDeclaredStamp = (typeof SELF_DECLARED_STAMPS)[number];
 
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
@@ -27,10 +28,34 @@ export async function requestSkillVerification(formData: FormData): Promise<void
     return;
   }
 
-  if (stamp === STAMPS.HOURS_40) {
-    return;
+  revalidatePath("/");
+}
+
+export async function updateSelfDeclaredSkills(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/login");
   }
 
+  const selectedSelfDeclared = formData
+    .getAll("selfDeclaredSkills")
+    .map((value) => String(value))
+    .filter((stamp): stamp is SelfDeclaredStamp => SELF_DECLARED_STAMPS.includes(stamp as SelfDeclaredStamp));
+
+  const { data: volunteer } = await supabase
+    .from("volunteers")
+    .select("skills")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  const currentSkills: string[] = volunteer?.skills ?? [];
+  const selfDeclaredSet = new Set<string>(SELF_DECLARED_STAMPS);
+  const preservedNonSelfDeclared = currentSkills.filter((skill: string) => !selfDeclaredSet.has(skill));
+  const mergedSkills = [...new Set([...preservedNonSelfDeclared, ...selectedSelfDeclared])];
+
+  await supabase.from("volunteers").update({ skills: mergedSkills }).eq("id", data.user.id);
   revalidatePath("/");
 }
 

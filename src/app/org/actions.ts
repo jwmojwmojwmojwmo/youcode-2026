@@ -5,9 +5,9 @@ import { APPLICATION_STATUSES, isPendingOrgReviewStatus } from "@/lib/applicatio
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { STAMPS } from "@/lib/stamps";
+import { SELF_DECLARED_STAMPS, VERIFIED_STAMPS } from "@/lib/stamps";
 
-type StampValue = (typeof STAMPS)[keyof typeof STAMPS];
+type RequiredSkillStamp = (typeof VERIFIED_STAMPS)[number] | (typeof SELF_DECLARED_STAMPS)[number];
 
 async function requireOrganizationUser() {
   const supabase = await createClient();
@@ -114,8 +114,9 @@ export async function createOrganizationEvent(formData: FormData) {
   const tags = normalizeStringList(submittedTags);
   const selectedSkills = formData.getAll("requiredSkills").map((value) => String(value));
   const legacySkills = parseStringList(getTrimmedField(formData, "requiredSkills"));
-  const allowedSkills = new Set<StampValue>(Object.values(STAMPS));
-  const isAllowedSkill = (skill: string): skill is StampValue => allowedSkills.has(skill as StampValue);
+  const allowedSkills = new Set<RequiredSkillStamp>([...VERIFIED_STAMPS, ...SELF_DECLARED_STAMPS]);
+  const isAllowedSkill = (skill: string): skill is RequiredSkillStamp =>
+    allowedSkills.has(skill as RequiredSkillStamp);
   const skillsNeededRaw = selectedSkills.length > 0 ? selectedSkills : legacySkills;
   const hasInvalidSkill = skillsNeededRaw.some((skill) => !isAllowedSkill(skill));
   const skillsNeeded = [...new Set(skillsNeededRaw)].filter(isAllowedSkill);

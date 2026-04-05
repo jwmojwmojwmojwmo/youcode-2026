@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getApplicationStatusLabel } from "@/lib/application-status";
-import { AUTO_EARNED_STAMPS, STAMP_LABELS, VERIFIED_STAMPS } from "@/lib/stamps";
-import { requestSkillVerification, signOut, updateProfileName } from "@/app/volunteer/actions";
+import { AUTO_EARNED_STAMPS, SELF_DECLARED_STAMPS, STAMP_LABELS, VERIFIED_STAMPS } from "@/lib/stamps";
+import { requestSkillVerification, signOut, updateProfileName, updateSelfDeclaredSkills } from "@/app/volunteer/actions";
 import type { VolunteerApplication, VolunteerProfile } from "@/types/volunteer";
 
 type VolunteerHeaderMenusProps = {
@@ -93,13 +93,39 @@ export default function VolunteerHeaderMenus({
                   {profile.skills && profile.skills.length > 0 ? (
                     profile.skills.map((skill) => (
                       <span key={skill} className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
-                        {skill}
+                        {STAMP_LABELS[skill as keyof typeof STAMP_LABELS] || skill}
                       </span>
                     ))
                   ) : (
                     <p className="text-sm text-gray-500">No skills listed.</p>
                   )}
                 </div>
+              </div>
+
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Self-declared skills</p>
+                <form action={updateSelfDeclaredSkills} className="mt-2 space-y-2">
+                  <div className="space-y-1">
+                    {SELF_DECLARED_STAMPS.map((stamp) => (
+                      <label key={stamp} className="flex items-center gap-2 text-xs text-gray-700">
+                        <input
+                          type="checkbox"
+                          name="selfDeclaredSkills"
+                          value={stamp}
+                          defaultChecked={(profile.skills ?? []).includes(stamp)}
+                          className="rounded border-gray-300"
+                        />
+                        <span>{STAMP_LABELS[stamp]}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900"
+                  >
+                    Save self-declared skills
+                  </button>
+                </form>
               </div>
 
               <div className="mt-4 border-t border-gray-100 pt-4">

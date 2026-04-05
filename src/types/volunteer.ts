@@ -1,12 +1,15 @@
 export type EventCard = {
   id: string;
+  created_at: string;
   title: string;
   description: string | null;
   address: string | null;
   hours_given: number;
   max_volunteers: number;
-  organizations: { name: string } | null;
+  organizations: { id: string; name: string } | null;
+  skills_needed: string[] | null;
   event_applications: { id: string; status: string }[];
+  tags: string[];
 };
 
 export type VolunteerProfile = {

@@ -152,22 +152,6 @@ export default function VolunteerOpportunityMap({
 
   return (
     <div className={`relative ${className ?? ""}`}>
-      <div className="absolute left-4 top-4 z-[900] flex max-w-[calc(100%-7rem)] flex-wrap gap-2">
-        <span className="rounded-full border border-slate-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900/88 dark:text-slate-100">
-          {eventsWithLocation.length > 0 ? `${eventsWithLocation.length} results on map` : "No results on map"}
-        </span>
-        {locationStatus === "denied" ? (
-          <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/55 dark:text-amber-200">
-            Location blocked. Showing default area.
-          </span>
-        ) : null}
-        {locationStatus === "unsupported" ? (
-          <span className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900/88 dark:text-slate-200">
-            Location unavailable in this browser.
-          </span>
-        ) : null}
-      </div>
-
       <div className="h-full min-h-[26rem] overflow-hidden rounded-[1.5rem] border border-white/60 map-shell">
         <MapContainer center={mapCenter} zoom={12} scrollWheelZoom zoomControl={false} className="h-full w-full min-h-[26rem]">
           <CenterMapOnCurrentLocation

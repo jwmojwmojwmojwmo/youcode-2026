@@ -108,7 +108,7 @@ export default async function VolunteerEventDetailsPage({ params }: VolunteerEve
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <section className="paper-panel rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <VolunteerHeaderMenus isSignedIn={Boolean(user)} />

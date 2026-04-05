@@ -140,7 +140,7 @@ export default async function VolunteerProfilePage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link href="/volunteer/profile/edit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
+                  <Link href="/volunteer/profile/edit" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
                     Edit
                   </Link>
                   <Link href="/volunteer/progression" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">

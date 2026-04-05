@@ -28,7 +28,7 @@ export default function VolunteerHeaderMenus({ isSignedIn }: VolunteerHeaderMenu
   return (
     <div className="flex shrink-0 flex-wrap items-center gap-2">
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname === item.href || (item.href === "/volunteer/profile" && pathname.startsWith("/volunteer/progression"));
+        const isActive = pathname === item.href;
 
         return (
           <Link
@@ -36,7 +36,7 @@ export default function VolunteerHeaderMenus({ isSignedIn }: VolunteerHeaderMenu
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "rounded-full px-4 py-2 text-sm font-semibold transition whitespace-nowrap min-w-[9.5rem] text-center",
+              "w-[10.5rem] rounded-full px-4 py-2 text-sm font-semibold transition whitespace-nowrap text-center",
               isActive
                 ? "primary-action ring-2 ring-offset-1 ring-slate-900"
                 : "stamp-pill"

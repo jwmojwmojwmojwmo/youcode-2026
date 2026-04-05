@@ -130,12 +130,14 @@ export default async function Home() {
   return (
     <main className="h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-6">
       <div className="mx-auto flex h-full max-w-[1700px] min-h-0 flex-col gap-4 overflow-hidden">
-        <header className="paper-panel relative z-40 rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <VolunteerHeaderMenus isSignedIn={Boolean(user)} />
-            <ReloadButton label="Refresh" />
-          </div>
-        </header>
+        <div className="mx-auto w-full max-w-6xl">
+          <header className="paper-panel relative z-40 rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <VolunteerHeaderMenus isSignedIn={Boolean(user)} />
+              <ReloadButton label="Refresh" />
+            </div>
+          </header>
+        </div>
 
         <div className="min-h-0 flex-1 overflow-hidden">
           <VolunteerEventBrowser

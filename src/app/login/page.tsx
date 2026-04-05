@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { login, signup } from "./actions";
+import { login } from "./actions";
 
 const errorMessages: Record<string, string> = {
   "invalid-email": "Enter a valid email address.",
@@ -23,14 +23,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="paper-panel rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/login" className="primary-action rounded-full px-4 py-2 text-sm font-semibold min-w-[9.5rem] text-center" aria-current="page">
-              Login or Sign up
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/login" className="primary-action rounded-full px-4 py-2 text-sm font-semibold min-w-[11rem] text-center" aria-current="page">
+              Volunteer access
+            </Link>
+            <Link href="/org/login" className="stamp-pill rounded-full px-4 py-2 text-sm font-semibold min-w-[11rem] text-center">
+              Organization access
             </Link>
           </div>
         </section>
 
         <section className="mx-auto max-w-md paper-panel rounded-[1.75rem] p-6 sm:p-7">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Link href="/login" className="primary-action rounded-full px-4 py-2 text-sm font-semibold min-w-[9.5rem] text-center" aria-current="page">
+              Log in
+            </Link>
+            <Link href="/signup" className="stamp-pill rounded-full px-4 py-2 text-sm font-semibold min-w-[9.5rem] text-center">
+              Sign up
+            </Link>
+          </div>
           <p className="kicker">Volunteer access</p>
           <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Volunteer login</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">Use your email and password to continue your profile and apply to opportunities.</p>
@@ -58,9 +69,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <div className="mt-2 flex flex-wrap gap-3">
               <button formAction={login} className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
                 Log In
-              </button>
-              <button formAction={signup} className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
-                Sign Up
               </button>
               <button type="button" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
                 Forgot password

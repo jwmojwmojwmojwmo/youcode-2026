@@ -63,7 +63,7 @@ export async function organizationSignup(formData: FormData) {
   const { error } = await supabase.auth.signUp({ email, password });
 
   if (error) {
-    redirect(`/org/login?error=${encodeURIComponent(error.message)}`);
+    redirect(`/org/signup?error=${encodeURIComponent(error.message)}`);
   }
 
   const { data } = await supabase.auth.getUser();

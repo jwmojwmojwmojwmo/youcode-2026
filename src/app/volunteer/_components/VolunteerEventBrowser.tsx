@@ -265,6 +265,23 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
         </div>
 
         <div className="mt-4 space-y-4 overflow-visible pr-1">
+          <div className="rounded-[1.1rem] border border-slate-200 bg-white/85 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Map results</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-50">
+              {eventsWithCoordinates.length > 0 ? `${eventsWithCoordinates.length} results on map` : "No results on map"}
+            </p>
+            {locationStatus === "denied" ? (
+              <p className="mt-2 text-xs font-semibold text-amber-900 dark:text-amber-200">
+                Location blocked. Showing default area.
+              </p>
+            ) : null}
+            {locationStatus === "unsupported" ? (
+              <p className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                Location unavailable in this browser.
+              </p>
+            ) : null}
+          </div>
+
           <div className="relative overflow-visible">
             <label className="mb-2 block text-sm font-semibold text-slate-900 dark:text-slate-50" htmlFor="event-search">
               Search

@@ -97,7 +97,7 @@ export default async function OrganizationProfilePage() {
               <h1 className="display-font mt-1 text-4xl font-semibold text-slate-900 sm:text-5xl">{organization.name}</h1>
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Link href="/org/profile/edit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
+                <Link href="/org/profile/edit" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
                   Edit profile
                 </Link>
                 <form action={organizationSignOut}>

@@ -1,11 +1,17 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import ReloadButton from "@/components/ReloadButton";
+import OrgHeaderNav from "@/app/org/_components/OrgHeaderNav";
+import VolunteerHeaderMenus from "@/app/volunteer/_components/VolunteerHeaderMenus";
+import { APPLICATION_STATUSES } from "@/lib/application-status";
 import { submitOrganizationReview } from "./actions";
 
 type OrganizationProfilePageProps = {
   params: Promise<{
     orgId: string;
+  }>;
+  searchParams?: Promise<{
+    reviewError?: string;
   }>;
 };
 
@@ -26,8 +32,16 @@ type OrgEvent = {
   created_at: string;
 };
 
-export default async function OrganizationProfilePage({ params }: OrganizationProfilePageProps) {
+const reviewErrorMessages: Record<string, string> = {
+  "volunteering-required": "You can review this organization only after completing volunteer work with them."
+};
+
+export default async function OrganizationProfilePage({ params, searchParams }: OrganizationProfilePageProps) {
   const { orgId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const reviewErrorMessage = resolvedSearchParams?.reviewError
+    ? reviewErrorMessages[resolvedSearchParams.reviewError] ?? "You are not eligible to submit a review yet."
+    : null;
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
   const user = authData.user;
@@ -54,7 +68,7 @@ export default async function OrganizationProfilePage({ params }: OrganizationPr
     );
   }
 
-  const [{ data: eventsData }, { data: reviewsData }, { data: myReview }] = await Promise.all([
+  const [{ data: eventsData }, { data: reviewsData }, { data: myReview }, { data: reviewEligibility }] = await Promise.all([
     supabase
       .from("events")
       .select("id, title, status, address, created_at")
@@ -72,6 +86,17 @@ export default async function OrganizationProfilePage({ params }: OrganizationPr
           .eq("org_id", orgId)
           .eq("volunteer_id", user.id)
           .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase
+          .from("event_applications")
+          .select("id, events!inner(org_id)")
+          .eq("volunteer_id", user.id)
+          .eq("status", APPLICATION_STATUSES.ACCEPTED)
+          .eq("attended", true)
+          .eq("events.org_id", orgId)
+          .limit(1)
+          .maybeSingle()
       : Promise.resolve({ data: null })
   ]);
 
@@ -86,10 +111,22 @@ export default async function OrganizationProfilePage({ params }: OrganizationPr
   const averageRating = reviews.length > 0
     ? reviews.reduce((total, review) => total + review.rating, 0) / reviews.length
     : 0;
+  const canSubmitReview = Boolean(user && reviewEligibility?.id);
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <section className="paper-panel rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {user?.id === orgId ? (
+              <OrgHeaderNav isSignedIn />
+            ) : (
+              <VolunteerHeaderMenus isSignedIn={Boolean(user)} />
+            )}
+            <ReloadButton label="Reload profile" />
+          </div>
+        </section>
+
         <section className="paper-panel rounded-[2rem] p-5 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -99,15 +136,11 @@ export default async function OrganizationProfilePage({ params }: OrganizationPr
               <p className="mt-2 text-xs text-slate-500">Joined {new Date(organization.created_at).toLocaleDateString()}</p>
             </div>
             <div className="flex items-center gap-2">
-              <ReloadButton label="Reload profile" />
               {user?.id === orgId ? (
                 <Link href="/org/profile/edit" className="rounded-full primary-action px-3 py-2 text-sm font-semibold">
                   Edit profile
                 </Link>
               ) : null}
-              <Link href={backHref} className="rounded-full secondary-action px-3 py-2 text-sm font-semibold">
-                Back to events
-              </Link>
             </div>
           </div>
 
@@ -161,41 +194,53 @@ export default async function OrganizationProfilePage({ params }: OrganizationPr
           <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Volunteer reviews</h2>
           <p className="mt-2 text-sm text-slate-600">Simple, transparent feedback from volunteers who worked with this organization.</p>
 
+          {reviewErrorMessage ? (
+            <p className="mt-4 rounded-[1rem] border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
+              {reviewErrorMessage}
+            </p>
+          ) : null}
+
           {user ? (
-            <form action={submitOrganizationReview} className="mt-4 space-y-3 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4">
-              <input type="hidden" name="orgId" value={organization.id} />
-              <div>
-                <label htmlFor="review-rating" className="block text-sm font-semibold text-slate-900">Your rating</label>
-                <select
-                  id="review-rating"
-                  name="rating"
-                  defaultValue={String(myReview?.rating ?? 5)}
-                  className="input-shell mt-2"
-                >
-                  <option value="5">5 - Excellent</option>
-                  <option value="4">4 - Good</option>
-                  <option value="3">3 - Average</option>
-                  <option value="2">2 - Poor</option>
-                  <option value="1">1 - Very poor</option>
-                </select>
-              </div>
+            canSubmitReview ? (
+              <form action={submitOrganizationReview} className="mt-4 space-y-3 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4">
+                <input type="hidden" name="orgId" value={organization.id} />
+                <div>
+                  <label htmlFor="review-rating" className="block text-sm font-semibold text-slate-900">Your rating</label>
+                  <select
+                    id="review-rating"
+                    name="rating"
+                    defaultValue={String(myReview?.rating ?? 5)}
+                    className="input-shell mt-2"
+                  >
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Very poor</option>
+                  </select>
+                </div>
 
-              <div>
-                <label htmlFor="review-text" className="block text-sm font-semibold text-slate-900">Your review</label>
-                <textarea
-                  id="review-text"
-                  name="reviewText"
-                  defaultValue={myReview?.review_text || ""}
-                  rows={4}
-                  placeholder="What was it like volunteering here?"
-                  className="input-shell mt-2 min-h-32"
-                />
-              </div>
+                <div>
+                  <label htmlFor="review-text" className="block text-sm font-semibold text-slate-900">Your review</label>
+                  <textarea
+                    id="review-text"
+                    name="reviewText"
+                    defaultValue={myReview?.review_text || ""}
+                    rows={4}
+                    placeholder="What was it like volunteering here?"
+                    className="input-shell mt-2 min-h-32"
+                  />
+                </div>
 
-              <button type="submit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
-                {myReview ? "Update review" : "Submit review"}
-              </button>
-            </form>
+                <button type="submit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
+                  {myReview ? "Update review" : "Submit review"}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-4 rounded-[1.25rem] border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                You can submit a review only after you are accepted and marked attended for one of this organization&apos;s events.
+              </div>
+            )
           ) : (
             <div className="mt-4 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4 text-sm text-slate-600">
               <p>Sign in as a volunteer to leave a review.</p>

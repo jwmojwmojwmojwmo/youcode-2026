@@ -72,7 +72,7 @@ export default async function VolunteerProgressionPage() {
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
         <section className="paper-panel rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <VolunteerHeaderMenus isSignedIn={Boolean(user)} />

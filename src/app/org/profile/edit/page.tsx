@@ -27,11 +27,8 @@ export default async function OrganizationProfileEditPage() {
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="paper-panel rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <OrgHeaderNav isSignedIn />
-            <Link href="/org/profile" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
-              Cancel
-            </Link>
           </div>
         </section>
 
@@ -73,7 +70,7 @@ export default async function OrganizationProfileEditPage() {
                 Save changes
               </button>
               <Link href="/org/profile" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
-                Back to profile
+                Cancel
               </Link>
             </div>
           </form>

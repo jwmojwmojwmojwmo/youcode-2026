@@ -12,6 +12,8 @@ export type OrganizationEvent = {
   id: string;
   title: string;
   address: string | null;
+  lat?: number | null;
+  lng?: number | null;
   status: string;
   created_at: string;
   max_volunteers: number;

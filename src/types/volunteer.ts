@@ -5,6 +5,8 @@ export type EventCard = {
   title: string;
   description: string | null;
   address: string | null;
+  lat?: number | null;
+  lng?: number | null;
   hours_given: number;
   max_volunteers: number;
   organizations: { id: string; name: string } | null;

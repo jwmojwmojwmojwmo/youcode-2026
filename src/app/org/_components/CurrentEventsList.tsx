@@ -18,15 +18,16 @@ function getPendingCount(event: OrganizationEvent) {
 
 export default function CurrentEventsList({ currentEvents }: CurrentEventsListProps) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Current events</h2>
-          <p className="mt-1 text-sm text-gray-600">Open an event to review volunteers, attendance, and completion.</p>
+          <p className="kicker">Active work</p>
+          <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Current events</h2>
+          <p className="mt-2 text-sm text-slate-600">Open an event to review volunteers, attendance, and completion.</p>
         </div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-5 space-y-3">
         {currentEvents.length > 0 ? (
           currentEvents.map((event) => {
             const approvedCount = (event.event_applications ?? []).filter(
@@ -35,34 +36,34 @@ export default function CurrentEventsList({ currentEvents }: CurrentEventsListPr
             const pendingCount = getPendingCount(event);
 
             return (
-              <article key={event.id} className="rounded-md border border-gray-200 p-4">
+              <article key={event.id} className="rounded-[1.35rem] border border-slate-200 bg-white/80 p-4 shadow-[0_12px_28px_rgba(20,33,46,0.06)]">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-base font-semibold text-gray-900">{event.title}</p>
-                    <p className="mt-1 text-sm text-gray-600">Status: {event.status}</p>
-                    <p className="mt-1 text-sm text-gray-600">Address: {event.address || "Not specified"}</p>
+                    <p className="display-font text-xl font-semibold text-slate-900">{event.title}</p>
+                    <p className="mt-1 text-sm text-slate-600">Status: {event.status}</p>
+                    <p className="mt-1 text-sm text-slate-600">Address: {event.address || "Not specified"}</p>
                   </div>
 
                   <Link
                     href={`/org/events/${event.id}`}
-                    className="rounded-md bg-black px-3 py-2 text-sm font-medium text-white"
+                    className="rounded-full primary-action px-4 py-2 text-sm font-semibold"
                   >
                     Manage event
                   </Link>
                 </div>
 
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                  <div className="rounded-lg bg-gray-50 p-3 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Approved</p>
-                    <p className="mt-1 font-semibold text-gray-900">{approvedCount}</p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 text-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Approved</p>
+                    <p className="mt-1 font-semibold text-slate-900">{approvedCount}</p>
                   </div>
-                  <div className="rounded-lg bg-gray-50 p-3 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Applications</p>
-                    <p className="mt-1 font-semibold text-gray-900">{pendingCount}</p>
+                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 text-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Applications</p>
+                    <p className="mt-1 font-semibold text-slate-900">{pendingCount}</p>
                   </div>
-                  <div className="rounded-lg bg-gray-50 p-3 text-sm">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Capacity</p>
-                    <p className="mt-1 font-semibold text-gray-900">
+                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 text-sm">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Capacity</p>
+                    <p className="mt-1 font-semibold text-slate-900">
                       {approvedCount} / {event.max_volunteers}
                     </p>
                   </div>
@@ -71,7 +72,7 @@ export default function CurrentEventsList({ currentEvents }: CurrentEventsListPr
             );
           })
         ) : (
-          <p className="text-sm text-gray-500">No current events right now.</p>
+          <p className="text-sm text-slate-600">No current events right now.</p>
         )}
       </div>
     </section>

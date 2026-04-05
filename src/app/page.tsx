@@ -68,24 +68,26 @@ export default async function Home() {
   const applicationStatusByEvent = new Map(myApplications.map((application) => [application.event_id, application.status]));
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Live Volunteer Map</h1>
-            <p className="mt-1 text-sm text-gray-600">Browse events, search, and sort by what matters most to you.</p>
-          </div>
+    <main className="min-h-screen px-3 py-3 sm:px-4 sm:py-4 lg:px-6 lg:py-6">
+      <div className="mx-auto max-w-[1700px] space-y-4">
+        <header className="paper-panel relative z-40 rounded-[1.6rem] px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="kicker">Volunteer, volunteering page</p>
+              <h1 className="display-font mt-1 break-words text-3xl font-semibold text-slate-900 sm:text-4xl">Volunteer atlas</h1>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <ReloadButton label="Reload dashboard" />
-            <VolunteerHeaderMenus
-              isSignedIn={Boolean(user)}
-              userEmail={user?.email}
-              profile={profile}
-              myApplications={myApplications}
-            />
+            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+              <ReloadButton label="Refresh atlas" />
+              <VolunteerHeaderMenus
+                isSignedIn={Boolean(user)}
+                userEmail={user?.email}
+                profile={profile}
+                myApplications={myApplications}
+              />
+            </div>
           </div>
-        </div>
+        </header>
 
         <VolunteerEventBrowser
           events={formattedEvents.filter((event) => event.status.toLowerCase() !== "completed")}

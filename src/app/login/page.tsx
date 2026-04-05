@@ -20,47 +20,48 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     : null;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md items-center px-6">
-      <section className="w-full rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold text-gray-900">Login</h1>
-        <p className="mt-1 text-sm text-gray-600">Use your email and password.</p>
+    <main className="mx-auto flex min-h-screen max-w-md items-center px-6 py-8">
+      <section className="paper-panel rounded-[1.75rem] p-6 sm:p-7">
+        <p className="kicker">Volunteer access</p>
+        <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Log in</h1>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Use your email and password to continue your stampbook and apply to opportunities.</p>
 
         {errorMessage ? (
-          <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{errorMessage}</p>
+          <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-3 text-sm font-medium text-rose-800">{errorMessage}</p>
         ) : null}
 
         <form className="mt-6 flex flex-col gap-3">
           <input
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="input-shell"
             name="email"
             type="email"
             placeholder="Email"
             required
           />
           <input
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="input-shell"
             name="password"
             type="password"
             placeholder="Password"
             required
           />
 
-          <div className="mt-2 flex gap-3">
-            <button formAction={login} className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
+          <div className="mt-2 flex flex-wrap gap-3">
+            <button formAction={login} className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
               Log In
             </button>
-            <button formAction={signup} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800">
+            <button formAction={signup} className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
               Sign Up
             </button>
-            <button type="button" className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-800">
+            <button type="button" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
               Forgot password
             </button>
           </div>
         </form>
 
-        <p className="mt-4 text-sm text-gray-600">
+        <p className="mt-4 text-sm text-slate-600">
           Are you an organization?{" "}
-          <Link href="/org/login" className="font-medium text-gray-900 underline">
+          <Link href="/org/login" className="font-semibold text-slate-900 underline decoration-2 underline-offset-4">
             Go to organization login
           </Link>
         </p>

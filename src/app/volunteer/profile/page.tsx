@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 import {
   AUTO_EARNED_STAMPS,
   AUTO_EARNED_STAMP_REQUIREMENTS,
@@ -9,6 +10,7 @@ import {
   VERIFIED_STAMPS
 } from "@/lib/stamps";
 import { requestSkillVerification, signOut, updateSelfDeclaredSkills } from "@/app/volunteer/actions";
+import StampbookFlightPath from "./_components/StampbookFlightPath";
 
 type VolunteerProfileRow = {
   id: string;
@@ -116,215 +118,270 @@ export default async function VolunteerProfilePage() {
   const nextEventsMilestone = getNextMilestoneByMetric("events", profile);
   const nextOverallMilestone = getNextOverallMilestone(profile);
 
+  const profileInitials = profile.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((segment) => segment[0]?.toUpperCase())
+    .join("") || "V";
+
+  const verifiedUnlockedCount = VERIFIED_STAMPS.filter((stamp) => unlockedSkills.has(stamp)).length;
+  const basicsUnlockedCount = SELF_DECLARED_STAMPS.filter((stamp) => unlockedSkills.has(stamp)).length;
+
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-6xl space-y-4">
-        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <section className="paper-panel rounded-[2rem] p-5 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Volunteer progression board</h1>
-              <p className="mt-1 text-sm text-gray-600">Track milestones, unlock specialized skills, and fine-tune your matchmaking basics.</p>
+              <p className="kicker">Passport record</p>
+              <h1 className="display-font mt-1 text-4xl font-semibold text-slate-900 sm:text-5xl">Your volunteer stampbook</h1>
+              <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+                This is your travel document for volunteering. Self-declared basics set the foundation, verified stamps are
+                the official visas, and the flight path shows the way toward your next milestone.
+              </p>
             </div>
-            <div className="flex gap-2">
-              <Link href="/" className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
+
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
                 Back to dashboard
               </Link>
               <form action={signOut}>
-                <button type="submit" className="rounded-md bg-black px-3 py-2 text-sm font-medium text-white">
+                <button type="submit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
                   Log out
                 </button>
               </form>
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-3">
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Email</p>
-              <p className="mt-1 text-sm font-medium text-gray-900">{profile.contact_email || user.email || "Not set"}</p>
-            </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Completed hours</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{profile.completed_hours}</p>
-            </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Completed events</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{profile.completed_events}</p>
-            </div>
-          </div>
-        </section>
+          <div className="mt-6 grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
+            <article className="paper-panel-strong rounded-[1.75rem] p-5">
+              <p className="kicker">Page 1</p>
+              <div className="mt-4 flex flex-wrap items-start gap-4">
+                <div className="flex h-24 w-24 items-center justify-center rounded-[1.5rem] border border-slate-200 bg-[linear-gradient(135deg,#0b5d66,#c45c2d)] text-3xl font-black text-white shadow-[0_18px_36px_rgba(20,33,46,0.22)]">
+                  {profileInitials}
+                </div>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">The Grind (Auto-earned)</h2>
-          <p className="mt-1 text-sm text-gray-600">Earn these milestones by consistently showing up and putting in hours.</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="display-font text-3xl font-semibold text-slate-900">{profile.name}</h2>
+                  <p className="mt-2 text-sm text-slate-600">{profile.contact_email || user.email || "Not set"}</p>
 
-          <div className="mt-3 grid gap-3 lg:grid-cols-3">
-            <article className="rounded-lg border border-indigo-200 bg-indigo-50 p-4 lg:col-span-1">
-              <p className="text-xs uppercase tracking-wide text-indigo-700">Next milestone</p>
-              {nextOverallMilestone ? (
-                <>
-                  <p className="mt-1 text-sm font-semibold text-indigo-900">{STAMP_LABELS[nextOverallMilestone.stamp]}</p>
-                  <p className="mt-1 text-xs text-indigo-800">
-                    {nextOverallMilestone.currentValue} / {nextOverallMilestone.target} {nextOverallMilestone.metric}
-                  </p>
-                  <div className="mt-2 h-2 rounded-full bg-indigo-200">
-                    <div
-                      className="h-2 rounded-full bg-indigo-600"
-                      style={{ width: `${Math.min(100, Math.round(nextOverallMilestone.progress * 100))}%` }}
-                    />
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="stamp-pill rounded-full px-3 py-1">{profile.completed_hours} hours</span>
+                    <span className="stamp-pill rounded-full px-3 py-1">{profile.completed_events} events</span>
+                    <span className="stamp-pill rounded-full px-3 py-1">{basicsUnlockedCount} basics set</span>
+                    <span className="stamp-pill rounded-full px-3 py-1">{verifiedUnlockedCount} verified stamps</span>
                   </div>
-                </>
-              ) : (
-                <p className="mt-1 text-sm font-medium text-indigo-900">All auto-earned milestones unlocked.</p>
-              )}
+                </div>
+              </div>
 
-              <div className="mt-3 space-y-2 text-xs text-indigo-900">
-                {nextHoursMilestone ? (
-                  <p>Hours track: {nextHoursMilestone.currentValue}/{nextHoursMilestone.target} ({nextHoursMilestone.remaining} left)</p>
-                ) : (
-                  <p>Hours track: complete</p>
-                )}
-                {nextEventsMilestone ? (
-                  <p>Events track: {nextEventsMilestone.currentValue}/{nextEventsMilestone.target} ({nextEventsMilestone.remaining} left)</p>
-                ) : (
-                  <p>Events track: complete</p>
-                )}
+              <div className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="kicker">Basic info</p>
+                    <p className="mt-1 text-sm text-slate-600">Self-declared traits that help match you to better opportunities.</p>
+                  </div>
+                  <p className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                    Passport basics
+                  </p>
+                </div>
+
+                <form action={updateSelfDeclaredSkills} className="mt-4 space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {SELF_DECLARED_STAMPS.map((stamp) => {
+                      const enabled = unlockedSkills.has(stamp);
+
+                      return (
+                        <label
+                          key={stamp}
+                          className={cn(
+                            "flex items-center gap-3 rounded-[1.1rem] border p-3 text-sm transition",
+                            enabled ? "border-slate-900 bg-slate-50" : "border-slate-200 bg-white"
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            name="selfDeclaredSkills"
+                            value={stamp}
+                            defaultChecked={enabled}
+                            className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                          />
+                          <span className="font-semibold text-slate-800">{STAMP_LABELS[stamp]}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <button type="submit" className="primary-action rounded-full px-4 py-2 text-sm font-semibold">
+                    Save basic info
+                  </button>
+                </form>
               </div>
             </article>
 
-            <div className="grid gap-2 sm:grid-cols-2 lg:col-span-2">
-              {AUTO_EARNED_STAMPS.map((stamp) => {
-                const { requirement, currentValue, progress, isUnlocked } = getAutoEarnedProgress(stamp, profile);
+            <div className="space-y-4">
+              <article className="paper-panel-strong rounded-[1.75rem] p-5">
+                <p className="kicker">Page 2</p>
+                <div className="mt-1 flex items-end justify-between gap-3">
+                  <div>
+                    <h2 className="display-font text-2xl font-semibold text-slate-900">Official visas</h2>
+                    <p className="mt-2 text-sm text-slate-600">These are the hard-to-get certs that get stamped after review.</p>
+                  </div>
+                  <p className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700">
+                    {verifiedUnlockedCount} / {VERIFIED_STAMPS.length} approved
+                  </p>
+                </div>
 
-                return (
-                  <article
-                    key={stamp}
-                    className={`rounded-lg border p-3 ${isUnlocked ? "border-emerald-300 bg-emerald-50" : "border-gray-200 bg-gray-50"}`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={`text-sm font-semibold ${isUnlocked ? "text-emerald-900" : "text-gray-700"}`}>
-                        {STAMP_LABELS[stamp]}
-                      </p>
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isUnlocked ? "bg-emerald-100 text-emerald-800" : "bg-gray-200 text-gray-600"}`}>
-                        {isUnlocked ? "Unlocked" : "Locked"}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-gray-600">
-                      {requirement.metric === "hours" ? "Hours milestone" : "Events milestone"}
-                    </p>
-                    {!isUnlocked ? (
-                      <>
-                        <p className="mt-1 text-[11px] text-gray-700">
-                          {Math.min(currentValue, requirement.target)} / {requirement.target}
-                        </p>
-                        <div className="mt-1 h-2 rounded-full bg-gray-200">
-                          <div className="h-2 rounded-full bg-gray-500" style={{ width: `${progress}%` }} />
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {VERIFIED_STAMPS.map((stamp) => {
+                    const isUnlocked = unlockedSkills.has(stamp);
+
+                    return (
+                      <article
+                        key={stamp}
+                        className={cn(
+                          "rounded-[1.15rem] border p-4",
+                          isUnlocked ? "border-slate-900 bg-white" : "border-slate-200 bg-white/70"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-slate-900">{STAMP_LABELS[stamp]}</p>
+                          <span className={cn(
+                            "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                            isUnlocked ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-700"
+                          )}>
+                            {isUnlocked ? "Stamped" : "Awaiting"}
+                          </span>
                         </div>
-                      </>
-                    ) : (
-                      <p className="mt-1 text-[11px] font-medium text-emerald-700">Milestone complete</p>
-                    )}
-                  </article>
-                );
-              })}
+
+                        <p className="mt-2 text-xs leading-5 text-slate-600">
+                          {isUnlocked ? "Admin verified and ready to use in matching." : "Upload proof to request official verification."}
+                        </p>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                <form action={requestSkillVerification} className="mt-5 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4">
+                  <p className="kicker">Submit proof</p>
+                  <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_auto]">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-900" htmlFor="verified-stamp-select">
+                        Stamp to verify
+                      </label>
+                      <select
+                        id="verified-stamp-select"
+                        name="stamp"
+                        defaultValue={VERIFIED_STAMPS[0]}
+                        className="input-shell mt-2"
+                      >
+                        {VERIFIED_STAMPS.map((stamp) => (
+                          <option key={stamp} value={stamp}>
+                            {STAMP_LABELS[stamp]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-900" htmlFor="verification-proof">
+                        Proof document
+                      </label>
+                      <input
+                        id="verification-proof"
+                        name="proof"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="input-shell mt-2 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white"
+                      />
+                    </div>
+
+                    <div className="flex items-end">
+                      <button type="submit" className="primary-action w-full rounded-full px-4 py-3 text-sm font-semibold">
+                        Submit proof
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </article>
+
+              <StampbookFlightPath
+                completedEvents={profile.completed_events}
+                completedHours={profile.completed_hours}
+              />
+
+              <article className="paper-panel-strong rounded-[1.75rem] p-5">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <p className="kicker">Milestone ledger</p>
+                    <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Auto-earned stamps</h2>
+                  </div>
+                  {nextOverallMilestone ? (
+                    <div className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-700">
+                      Next: {STAMP_LABELS[nextOverallMilestone.stamp]}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {AUTO_EARNED_STAMPS.map((stamp) => {
+                    const { requirement, currentValue, progress, isUnlocked } = getAutoEarnedProgress(stamp, profile);
+
+                    return (
+                      <article
+                        key={stamp}
+                        className={cn(
+                          "rounded-[1.1rem] border p-4",
+                          isUnlocked ? "border-slate-900 bg-white" : "border-slate-200 bg-white/70"
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-slate-900">{STAMP_LABELS[stamp]}</p>
+                          <span className={cn(
+                            "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                            isUnlocked ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-700"
+                          )}>
+                            {isUnlocked ? "Unlocked" : "Locked"}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-slate-600">
+                          {requirement.metric === "hours" ? "Hours milestone" : "Events milestone"}
+                        </p>
+                        {!isUnlocked ? (
+                          <>
+                            <p className="mt-2 text-xs text-slate-700">
+                              {Math.min(currentValue, requirement.target)} / {requirement.target}
+                            </p>
+                            <div className="mt-2 h-2 rounded-full bg-slate-200">
+                              <div className="h-2 rounded-full bg-[linear-gradient(90deg,#0b5d66,#c45c2d)]" style={{ width: `${progress}%` }} />
+                            </div>
+                          </>
+                        ) : (
+                          <p className="mt-2 text-xs font-semibold text-slate-700">Milestone complete.</p>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 grid gap-3 rounded-[1.25rem] border border-slate-200 bg-white/80 p-4 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Hours track</p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      {nextHoursMilestone ? `${nextHoursMilestone.currentValue} / ${nextHoursMilestone.target} hours` : "Complete"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Events track</p>
+                    <p className="mt-1 text-sm text-slate-700">
+                      {nextEventsMilestone ? `${nextEventsMilestone.currentValue} / ${nextEventsMilestone.target} events` : "Complete"}
+                    </p>
+                  </div>
+                </div>
+              </article>
             </div>
           </div>
         </section>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">The Unlocks (Verified)</h2>
-            <p className="mt-1 text-sm text-gray-600">Upload proof for certifications and specialized skills to unlock verified stamps.</p>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {VERIFIED_STAMPS.map((stamp) => {
-              const isUnlocked = unlockedSkills.has(stamp);
-
-              return (
-                <article
-                  key={stamp}
-                  className={`rounded-lg border p-3 ${isUnlocked ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-gray-50"}`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className={`text-sm font-semibold ${isUnlocked ? "text-blue-900" : "text-gray-700"}`}>{STAMP_LABELS[stamp]}</p>
-                    <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${isUnlocked ? "bg-blue-100 text-blue-800" : "bg-gray-200 text-gray-600"}`}>
-                      {isUnlocked ? "Verified" : "Locked"}
-                    </span>
-                  </div>
-                </article>
-              );
-            })}
-            </div>
-
-            <form action={requestSkillVerification} className="mt-4 grid gap-2 rounded-lg border border-gray-200 p-3 sm:grid-cols-[1fr_1fr_auto]">
-            <div>
-              <label className="block text-xs uppercase tracking-wide text-gray-500" htmlFor="verified-stamp-select">
-                Stamp to verify
-              </label>
-              <select
-                id="verified-stamp-select"
-                name="stamp"
-                defaultValue={VERIFIED_STAMPS[0]}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-              >
-                {VERIFIED_STAMPS.map((stamp) => (
-                  <option key={stamp} value={stamp}>
-                    {STAMP_LABELS[stamp]}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs uppercase tracking-wide text-gray-500" htmlFor="verification-proof">
-                Proof document
-              </label>
-              <input
-                id="verification-proof"
-                name="proof"
-                type="file"
-                accept="image/*,application/pdf"
-                className="mt-1 block w-full text-sm text-gray-700"
-              />
-            </div>
-            <div className="flex items-end">
-              <button type="submit" className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
-                Submit proof
-              </button>
-            </div>
-            </form>
-          </section>
-
-          <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">The Basics (Self-declared)</h2>
-            <p className="mt-1 text-sm text-gray-600">Set your starter badges to improve event matching.</p>
-
-            <form action={updateSelfDeclaredSkills} className="mt-3 space-y-3">
-              <div className="grid gap-2 sm:grid-cols-2">
-              {SELF_DECLARED_STAMPS.map((stamp) => {
-                const enabled = unlockedSkills.has(stamp);
-
-                return (
-                  <label
-                    key={stamp}
-                    className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${enabled ? "border-indigo-300 bg-indigo-50" : "border-gray-200 bg-gray-50"}`}
-                  >
-                    <input
-                      type="checkbox"
-                      name="selfDeclaredSkills"
-                      value={stamp}
-                      defaultChecked={enabled}
-                      className="rounded border-gray-300"
-                    />
-                    <span className="font-medium text-gray-800">{STAMP_LABELS[stamp]}</span>
-                  </label>
-                );
-              })}
-              </div>
-              <button type="submit" className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">
-                Save self-declared skills
-              </button>
-            </form>
-          </section>
-        </div>
       </div>
     </main>
   );

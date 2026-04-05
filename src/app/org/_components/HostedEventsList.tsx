@@ -9,8 +9,9 @@ type HostedEventsListProps = {
 
 export default function HostedEventsList({ allEvents }: HostedEventsListProps) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-gray-900">All hosted events</h2>
+    <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
+      <p className="kicker">Archive</p>
+      <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">All hosted events</h2>
       <div className="mt-4 space-y-3">
         {allEvents.length > 0 ? (
           allEvents.map((event) => (
@@ -20,16 +21,16 @@ export default function HostedEventsList({ allEvents }: HostedEventsListProps) {
               ).length;
 
               return (
-                <div key={event.id} className="rounded-md border border-gray-200 p-3 text-sm">
-                  <p className="font-semibold text-gray-900">{event.title}</p>
-                  <p className="text-gray-600">Address: {event.address || "Not specified"}</p>
-                  <p className="text-gray-600">Status: {event.status}</p>
-                  <p className="text-gray-600">Approved volunteers: {approvedCount} / {event.max_volunteers}</p>
-                  <p className="text-gray-600">Total applications: {event.event_applications?.length ?? 0}</p>
+                <div key={event.id} className="rounded-[1.35rem] border border-slate-200 bg-white/80 p-4 text-sm shadow-[0_12px_28px_rgba(20,33,46,0.06)]">
+                  <p className="display-font text-xl font-semibold text-slate-900">{event.title}</p>
+                  <p className="text-slate-600">Address: {event.address || "Not specified"}</p>
+                  <p className="text-slate-600">Status: {event.status}</p>
+                  <p className="text-slate-600">Approved volunteers: {approvedCount} / {event.max_volunteers}</p>
+                  <p className="text-slate-600">Total applications: {event.event_applications?.length ?? 0}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link
                       href={`/org/events/${event.id}`}
-                      className="rounded-md border border-gray-300 px-3 py-2 text-xs font-medium text-gray-900"
+                      className="rounded-full secondary-action px-3 py-2 text-xs font-semibold"
                     >
                       Manage event
                     </Link>
@@ -39,7 +40,7 @@ export default function HostedEventsList({ allEvents }: HostedEventsListProps) {
                         <input type="hidden" name="eventId" value={event.id} />
                         <button
                           type="submit"
-                          className="rounded-md border border-gray-300 px-3 py-2 text-xs font-medium text-gray-900"
+                          className="rounded-full secondary-action px-3 py-2 text-xs font-semibold"
                         >
                           Remove from dashboard
                         </button>
@@ -51,7 +52,7 @@ export default function HostedEventsList({ allEvents }: HostedEventsListProps) {
             })()
           ))
         ) : (
-          <p className="text-sm text-gray-500">No events created yet.</p>
+          <p className="text-sm text-slate-600">No events created yet.</p>
         )}
       </div>
     </section>

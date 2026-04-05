@@ -13,10 +13,15 @@ export default async function OrganizationPage() {
 
   if (!user) {
     return (
-      <main className="p-8">
-        <Link href="/org/login" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
+      <main className="mx-auto flex min-h-screen max-w-xl items-center px-6 py-8">
+        <div className="paper-panel rounded-[1.75rem] p-6">
+          <p className="kicker">Organization access</p>
+          <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Sign in to manage events</h1>
+          <p className="mt-2 text-sm text-slate-600">You need an organization account to open this dashboard.</p>
+          <Link href="/org/login" className="mt-5 inline-flex rounded-full primary-action px-4 py-2 text-sm font-semibold">
           Go to organization login
-        </Link>
+          </Link>
+        </div>
       </main>
     );
   }
@@ -41,52 +46,54 @@ export default async function OrganizationPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8 flex items-start justify-between gap-3">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Organization Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-600">{organization?.name || "Organization"}</p>
-          </div>
-          <div className="flex gap-2">
-            <ReloadButton label="Reload dashboard" />
-            <details className="relative">
-              <summary className="cursor-pointer list-none rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900">
-                Profile
-              </summary>
-              <div className="absolute right-0 top-full z-10 mt-2 w-72 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                <p className="text-sm font-semibold text-gray-900">{organization?.name || "Organization"}</p>
-                <p className="mt-1 text-xs text-gray-500">{organization?.contact_email || user.email}</p>
+    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <section className="paper-panel rounded-[2rem] p-5 sm:p-7">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-3xl">
+              <p className="kicker">Organization dashboard</p>
+              <h1 className="display-font mt-2 text-4xl font-semibold text-slate-900 sm:text-5xl">{organization?.name || "Organization"}</h1>
+              <p className="mt-2 text-sm leading-7 text-slate-600">
+                Track active events, review volunteer applications, and keep the public-facing record tidy.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <ReloadButton label="Refresh dashboard" />
+              <details className="relative">
+                <summary className="stamp-pill cursor-pointer list-none rounded-full px-4 py-2 text-sm font-semibold">
+                  Profile
+                </summary>
+                <div className="paper-panel absolute right-0 top-full z-10 mt-3 w-80 rounded-[1.35rem] p-4">
+                  <p className="text-sm font-semibold text-slate-900">{organization?.name || "Organization"}</p>
+                  <p className="mt-1 text-xs text-slate-600">{organization?.contact_email || user.email}</p>
 
-                <form action={updateOrganizationProfileName} className="mt-4 space-y-2">
-                  <label className="block text-xs uppercase tracking-wide text-gray-500" htmlFor="org-profile-name">
-                    Organization name
-                  </label>
-                  <input
-                    id="org-profile-name"
-                    name="name"
-                    defaultValue={organization?.name || ""}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900"
-                  >
-                    Save name
-                  </button>
-                </form>
-              </div>
-            </details>
-            <Link href="/org/events/new" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
-              Create new event
-            </Link>
-            <form action={organizationSignOut}>
-              <button type="submit" className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900">
-                Log out
-              </button>
-            </form>
+                  <form action={updateOrganizationProfileName} className="mt-4 space-y-3">
+                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-500" htmlFor="org-profile-name">
+                      Organization name
+                    </label>
+                    <input
+                      id="org-profile-name"
+                      name="name"
+                      defaultValue={organization?.name || ""}
+                      className="input-shell"
+                    />
+                    <button type="submit" className="primary-action w-full rounded-full px-4 py-2 text-sm font-semibold">
+                      Save name
+                    </button>
+                  </form>
+                </div>
+              </details>
+              <Link href="/org/events/new" className="inline-flex rounded-full primary-action px-4 py-2 text-sm font-semibold">
+                Create new event
+              </Link>
+              <form action={organizationSignOut}>
+                <button type="submit" className="secondary-action rounded-full px-4 py-2 text-sm font-semibold">
+                  Log out
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        </section>
 
         <CurrentEventsList currentEvents={currentEvents} />
 

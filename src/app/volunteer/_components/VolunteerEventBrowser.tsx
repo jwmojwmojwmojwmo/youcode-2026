@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import VolunteerEventGrid from "./VolunteerEventGrid";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
 import { APPLICATION_STATUSES } from "@/lib/application-status";
+import { cn } from "@/lib/utils";
 import type { EventCard, VolunteerProfile } from "@/types/volunteer";
+
+const VolunteerOpportunityMap = dynamic(() => import("./VolunteerOpportunityMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="paper-panel flex h-full min-h-[26rem] items-center justify-center rounded-[1.75rem] text-sm font-semibold text-slate-600">
+      Loading map...
+    </div>
+  )
+});
 
 type SortOption = "recommended" | "alphabetical" | "most-volunteers" | "newest" | "hours-desc";
 
@@ -48,6 +59,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
   const [keyword, setKeyword] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>("recommended");
+  const [activeEventId, setActiveEventId] = useState<string | null>(null);
 
   const allAvailableTags = useMemo(() => {
     const tags = new Set<string>();
@@ -108,66 +120,205 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
     }
   }, [events, keyword, selectedTags, sortOption, profile]);
 
+  useEffect(() => {
+    if (filteredEvents.length === 0) {
+      setActiveEventId(null);
+      return;
+    }
+
+    const selectedStillVisible = filteredEvents.some((event) => event.id === activeEventId);
+    if (!selectedStillVisible) {
+      setActiveEventId(filteredEvents[0].id);
+    }
+  }, [activeEventId, filteredEvents]);
+
+  const activeEvent = filteredEvents.find((event) => event.id === activeEventId) ?? filteredEvents[0] ?? null;
+  const eventsWithCoordinates = filteredEvents.filter((event) => Number.isFinite(event.lat) && Number.isFinite(event.lng));
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <label className="mb-2 block text-sm font-semibold text-gray-900">Find by Keyword or Tag</label>
-          <input
-            type="text"
-            placeholder="Search titles, descriptions, orgs..."
-            value={keyword}
-            onChange={handleKeywordChange}
-            className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          />
-          
-          <div className="flex flex-wrap gap-2">
-            {allAvailableTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => handleTagToggle(tag)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  selectedTags.includes(tag)
-                    ? "bg-black text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {tag}
-              </button>
-            ))}
+    <div className="relative z-10 grid min-h-[calc(100vh-11rem)] gap-4 lg:grid-cols-[380px_minmax(0,1fr)] xl:gap-6">
+      <aside className="paper-panel flex min-h-0 flex-col rounded-[1.75rem] p-4 sm:p-5 lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-4">
+          <div className="min-w-0">
+            <p className="kicker">Volunteer</p>
+            <h3 className="display-font mt-1 break-words text-2xl font-semibold text-slate-900">Volunteer, volunteering page</h3>
+            <p className="mt-2 text-xs text-slate-600">Choose a point on the map to load its details here.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setKeyword("");
+              setSelectedTags([]);
+              setSortOption("recommended");
+            }}
+            className="secondary-action rounded-full px-3 py-2 text-xs font-semibold"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
+          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Visible</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">{filteredEvents.length}</p>
+          </div>
+          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Mapped</p>
+            <p className="mt-1 text-lg font-semibold text-slate-900">{eventsWithCoordinates.length}</p>
+          </div>
+          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Mode</p>
+            <p className="mt-1 text-sm font-semibold text-slate-900">{getSortLabel(sortOption)}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <label htmlFor="sort-events" className="mb-2 block text-sm font-semibold text-gray-900">
-            Sort events
-          </label>
-          <p className="mb-3 text-xs text-gray-600">
-            Recommended uses your skills and experience. Other sorts let you scan by title, capacity, or hours.
-          </p>
-          <select
-            id="sort-events"
-            value={sortOption}
-            onChange={(event) => setSortOption(event.target.value as SortOption)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-          >
-            <option value="recommended">{getSortLabel("recommended")}</option>
-            <option value="alphabetical">{getSortLabel("alphabetical")}</option>
-            <option value="most-volunteers">{getSortLabel("most-volunteers")}</option>
-            <option value="hours-desc">{getSortLabel("hours-desc")}</option>
-            <option value="newest">{getSortLabel("newest")}</option>
-          </select>
+        <div className="mt-4 space-y-4 overflow-y-auto pr-1">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-900" htmlFor="event-search">
+              Search
+            </label>
+            <input
+              id="event-search"
+              type="text"
+              placeholder="Search titles, descriptions, orgs..."
+              value={keyword}
+              onChange={handleKeywordChange}
+              className="input-shell"
+            />
+          </div>
+
+          <div>
+            <p className="mb-2 text-sm font-semibold text-slate-900">Tags</p>
+            <div className="flex flex-wrap gap-2">
+              {allAvailableTags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => handleTagToggle(tag)}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                    selectedTags.includes(tag)
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                  )}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="sort-events" className="mb-2 block text-sm font-semibold text-slate-900">
+              Sort events
+            </label>
+            <select
+              id="sort-events"
+              value={sortOption}
+              onChange={(event) => setSortOption(event.target.value as SortOption)}
+              className="input-shell"
+            >
+              <option value="recommended">{getSortLabel("recommended")}</option>
+              <option value="alphabetical">{getSortLabel("alphabetical")}</option>
+              <option value="most-volunteers">{getSortLabel("most-volunteers")}</option>
+              <option value="hours-desc">{getSortLabel("hours-desc")}</option>
+              <option value="newest">{getSortLabel("newest")}</option>
+            </select>
+          </div>
+
+          {activeEvent ? (
+            <article className="rounded-[1.35rem] border border-slate-200 bg-white/85 p-4 shadow-[0_16px_36px_rgba(20,33,46,0.08)]">
+              <p className="kicker">Selected event</p>
+              <h4 className="display-font mt-1 break-words text-2xl font-semibold text-slate-900">{activeEvent.title}</h4>
+              <p className="mt-2 break-words text-sm text-slate-600">{activeEvent.organizations?.name || "Independent"}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-700">{activeEvent.description || "No description provided."}</p>
+
+              <div className="mt-4 grid gap-2 text-sm text-slate-700 sm:grid-cols-2">
+                <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Address</p>
+                  <p className="mt-1 break-words">{activeEvent.address || "Address not specified"}</p>
+                </div>
+                <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Capacity</p>
+                  <p className="mt-1">{activeEvent.hours_given} hours, {activeEvent.max_volunteers} volunteers</p>
+                </div>
+              </div>
+
+              {activeEvent.tags.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {activeEvent.tags.map((tag) => (
+                    <span key={tag} className="stamp-pill rounded-full px-2.5 py-1 text-xs font-semibold text-slate-800">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href={`/events/${activeEvent.id}`} className="inline-flex rounded-full primary-action px-4 py-2 text-sm font-semibold">
+                  Open event
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setActiveEventId(null)}
+                  className="inline-flex rounded-full secondary-action px-4 py-2 text-sm font-semibold"
+                >
+                  Clear selection
+                </button>
+              </div>
+            </article>
+          ) : (
+            <div className="rounded-[1.35rem] border border-slate-200 bg-white/85 p-4 text-sm text-slate-600">
+              {filteredEvents.length === 0
+                ? "No events available right now."
+                : "Select a marker or event to load details here."}
+            </div>
+          )}
+
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-slate-900">More events</p>
+              <p className="text-xs text-slate-500">Click any row to move the pin focus</p>
+            </div>
+
+            {filteredEvents.length > 0 ? (
+              <div className="space-y-2">
+                {filteredEvents.map((event) => (
+                  <button
+                    key={event.id}
+                    type="button"
+                    onClick={() => setActiveEventId(event.id)}
+                    className={cn(
+                      "w-full rounded-[1rem] border px-3 py-2 text-left transition",
+                      event.id === activeEventId
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 bg-white/85 text-slate-800 hover:border-slate-400 hover:bg-slate-50"
+                    )}
+                  >
+                    <p className="truncate text-sm font-semibold">{event.title}</p>
+                    <p className={cn("mt-1 truncate text-xs", event.id === activeEventId ? "text-slate-100" : "text-slate-500") }>
+                      {event.organizations?.name || "Independent"} • {event.hours_given} hrs
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3 text-sm text-slate-600">
+                None
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </aside>
 
-      <hr className="border-gray-200" />
-
-      <VolunteerEventGrid
-        events={filteredEvents}
-        isSignedIn={isSignedIn}
-        applicationStatusByEvent={applicationStatusByEvent}
-      />
+      <section className="z-0 min-h-[calc(100vh-11rem)] lg:h-[calc(100vh-3rem)]">
+        <VolunteerOpportunityMap
+          events={filteredEvents}
+          activeEventId={activeEventId}
+          onSelectEvent={setActiveEventId}
+          className="h-full"
+        />
+      </section>
     </div>
   );
 }

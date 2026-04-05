@@ -27,7 +27,7 @@ export default function ReloadButton({ label = "Reload", className }: ReloadButt
       disabled={isRefreshing}
       className={
         className ||
-        "rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+        "stamp-pill px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
       }
       aria-label={label}
     >

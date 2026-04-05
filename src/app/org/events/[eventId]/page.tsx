@@ -28,11 +28,12 @@ export default async function EventManagementPage({ params }: EventManagementPag
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <div className="mx-auto max-w-3xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-semibold text-gray-900">Sign in required</h1>
-          <p className="mt-2 text-sm text-gray-600">Please sign in to manage organization events.</p>
-          <Link href="/org/login" className="mt-4 inline-flex rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
+      <main className="mx-auto flex min-h-screen max-w-xl items-center px-6 py-8">
+        <div className="paper-panel rounded-[1.75rem] p-6">
+          <p className="kicker">Organization access</p>
+          <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Sign in required</h1>
+          <p className="mt-2 text-sm text-slate-600">Please sign in to manage organization events.</p>
+          <Link href="/org/login" className="mt-4 inline-flex rounded-full primary-action px-4 py-2 text-sm font-semibold">
             Go to organization login
           </Link>
         </div>
@@ -49,11 +50,12 @@ export default async function EventManagementPage({ params }: EventManagementPag
 
   if (!event) {
     return (
-      <main className="min-h-screen bg-gray-50 p-8">
-        <div className="mx-auto max-w-3xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-semibold text-gray-900">Event not found</h1>
-          <p className="mt-2 text-sm text-gray-600">This event does not belong to your organization, or it no longer exists.</p>
-          <Link href="/org" className="mt-4 inline-flex rounded-md bg-black px-4 py-2 text-sm font-medium text-white">
+      <main className="mx-auto flex min-h-screen max-w-xl items-center px-6 py-8">
+        <div className="paper-panel rounded-[1.75rem] p-6">
+          <p className="kicker">Organization access</p>
+          <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Event not found</h1>
+          <p className="mt-2 text-sm text-slate-600">This event does not belong to your organization, or it no longer exists.</p>
+          <Link href="/org" className="mt-4 inline-flex rounded-full primary-action px-4 py-2 text-sm font-semibold">
             Back to dashboard
           </Link>
         </div>
@@ -100,34 +102,34 @@ export default async function EventManagementPage({ params }: EventManagementPag
   const getSkillLabel = (skill: string) => STAMP_LABELS[skill as keyof typeof STAMP_LABELS] || skill;
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
+    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="paper-panel rounded-[2rem] p-5 sm:p-7">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold text-gray-900">{event.title}</h1>
-                <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">{event.status}</span>
+                <h1 className="display-font text-3xl font-semibold text-slate-900">{event.title}</h1>
+                <span className="stamp-pill rounded-full px-3 py-1 text-xs font-semibold">{event.status}</span>
               </div>
-              <p className="mt-2 text-sm text-gray-600">{event.description || "No description provided."}</p>
-              <p className="mt-2 text-sm text-gray-600">Address: {event.address || "Not specified"}</p>
-              <p className="mt-2 text-xs text-gray-500">Hours credited when the event is ended: {event.hours_given}</p>
+              <p className="mt-2 text-sm text-slate-600">{event.description || "No description provided."}</p>
+              <p className="mt-2 text-sm text-slate-600">Address: {event.address || "Not specified"}</p>
+              <p className="mt-2 text-xs text-slate-500">Hours credited when the event is ended: {event.hours_given}</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               <ReloadButton label="Reload event" />
-              <Link href="/org" className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
+              <Link href="/org" className="rounded-full secondary-action px-3 py-2 text-sm font-semibold">
                 Back to dashboard
               </Link>
               {!isCompleted ? (
                 <form action={endOrganizationEvent}>
                   <input type="hidden" name="eventId" value={event.id} />
-                  <button type="submit" className="rounded-md bg-black px-3 py-2 text-sm font-medium text-white">
+                  <button type="submit" className="rounded-full primary-action px-3 py-2 text-sm font-semibold">
                     End event
                   </button>
                 </form>
               ) : (
-                <span className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
+                <span className="rounded-full secondary-action px-3 py-2 text-sm font-semibold">
                   Event completed
                 </span>
               )}
@@ -135,30 +137,31 @@ export default async function EventManagementPage({ params }: EventManagementPag
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Accepted</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{acceptedApplications.length}</p>
+            <div className="rounded-[1.15rem] border border-slate-200 bg-white/80 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Accepted</p>
+              <p className="mt-1 text-xl font-semibold text-slate-900">{acceptedApplications.length}</p>
             </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Applied</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{appliedApplications.length}</p>
+            <div className="rounded-[1.15rem] border border-slate-200 bg-white/80 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Applied</p>
+              <p className="mt-1 text-xl font-semibold text-slate-900">{appliedApplications.length}</p>
             </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Showed up</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{attendedCount}</p>
+            <div className="rounded-[1.15rem] border border-slate-200 bg-white/80 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Showed up</p>
+              <p className="mt-1 text-xl font-semibold text-slate-900">{attendedCount}</p>
             </div>
-            <div className="rounded-lg border border-gray-200 p-3">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Average volunteer event rating</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">{averageVolunteerEventRating > 0 ? `${averageVolunteerEventRating.toFixed(1)} / 5.0` : "No ratings yet"}</p>
+            <div className="rounded-[1.15rem] border border-slate-200 bg-white/80 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Average rating</p>
+              <p className="mt-1 text-xl font-semibold text-slate-900">{averageVolunteerEventRating > 0 ? `${averageVolunteerEventRating.toFixed(1)} / 5.0` : "No ratings yet"}</p>
             </div>
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Accepted volunteers</h2>
-              <p className="mt-1 text-sm text-gray-600">Mark who showed up, rate them, and close the event once everyone is recorded.</p>
+              <p className="kicker">Attendance</p>
+              <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Accepted volunteers</h2>
+              <p className="mt-2 text-sm text-slate-600">Mark who showed up, rate them, and close the event once everyone is recorded.</p>
             </div>
           </div>
 
@@ -169,45 +172,45 @@ export default async function EventManagementPage({ params }: EventManagementPag
                 const displayName = getVolunteerDisplayName(application.volunteer_id, volunteer?.name);
 
                 return (
-                  <article key={application.id} className="rounded-md border border-gray-200 p-4">
+                  <article key={application.id} className="rounded-[1.35rem] border border-slate-200 bg-white/80 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                        <p className="mt-1 text-sm text-gray-600">{volunteer?.contact_email || "No email"}</p>
-                        <p className="mt-1 text-xs text-gray-500">{getAttendanceLabel(Boolean(application.attended))}</p>
+                        <p className="display-font text-xl font-semibold text-slate-900">{displayName}</p>
+                        <p className="mt-1 text-sm text-slate-600">{volunteer?.contact_email || "No email"}</p>
+                        <p className="mt-1 text-xs text-slate-500">{getAttendanceLabel(Boolean(application.attended))}</p>
                         {volunteer?.contact_email ? (
                           <a
                             href={`mailto:${volunteer.contact_email}`}
-                            className="mt-1 inline-flex text-xs font-medium text-gray-900 underline"
+                            className="mt-1 inline-flex text-xs font-semibold text-slate-900 underline decoration-2 underline-offset-4"
                           >
                             Email volunteer
                           </a>
                         ) : null}
                       </div>
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                      <span className="stamp-pill rounded-full px-3 py-1 text-xs font-semibold">
                         Your rating for volunteer: {application.org_rating ?? "n/a"}
                       </span>
                     </div>
 
                     <div className="mt-3 grid gap-3 sm:grid-cols-3 text-sm">
-                      <div className="rounded-lg bg-gray-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Hours completed</p>
-                        <p className="mt-1 font-semibold text-gray-900">{volunteer?.completed_hours ?? 0}</p>
+                      <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Hours completed</p>
+                        <p className="mt-1 font-semibold text-slate-900">{volunteer?.completed_hours ?? 0}</p>
                       </div>
-                      <div className="rounded-lg bg-gray-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Events completed</p>
-                        <p className="mt-1 font-semibold text-gray-900">{volunteer?.completed_events ?? 0}</p>
+                      <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Events completed</p>
+                        <p className="mt-1 font-semibold text-slate-900">{volunteer?.completed_events ?? 0}</p>
                       </div>
-                      <div className="rounded-lg bg-gray-50 p-3">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Overall volunteer rating</p>
-                        <p className="mt-1 font-semibold text-gray-900">{(volunteer?.rating ?? 0).toFixed(1) + " / 5.0"}</p>
+                      <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Overall rating</p>
+                        <p className="mt-1 font-semibold text-slate-900">{(volunteer?.rating ?? 0).toFixed(1) + " / 5.0"}</p>
                       </div>
                     </div>
 
                     {volunteer?.skills?.length ? (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {volunteer.skills.map((skill) => (
-                          <span key={skill} className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                          <span key={skill} className="stamp-pill rounded-full px-2 py-1 text-xs text-slate-800">
                             {skill}
                           </span>
                         ))}
@@ -222,7 +225,7 @@ export default async function EventManagementPage({ params }: EventManagementPag
                         initialRating={application.org_rating}
                       />
                     ) : (
-                      <p className="mt-4 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                      <p className="mt-4 rounded-[1rem] border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
                         This event has ended. Attendance is locked.
                       </p>
                     )}
@@ -230,28 +233,29 @@ export default async function EventManagementPage({ params }: EventManagementPag
                 );
               })
             ) : (
-              <p className="text-sm text-gray-500">No accepted volunteers yet.</p>
+              <p className="text-sm text-slate-600">No accepted volunteers yet.</p>
             )}
           </div>
         </section>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Applied volunteers</h2>
-          <p className="mt-1 text-sm text-gray-600">Review pending volunteers and accept or decline them here.</p>
-          <p className="mt-1 text-sm text-gray-600">Required skills and volunteer coverage: review which required skills this event asks for and which applicants currently match them.</p>
+        <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
+          <p className="kicker">Applications</p>
+          <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Applied volunteers</h2>
+          <p className="mt-2 text-sm text-slate-600">Review pending volunteers and accept or decline them here.</p>
+          <p className="mt-1 text-sm text-slate-600">Required skills and volunteer coverage: review which required skills this event asks for and which applicants currently match them.</p>
 
-          <div className="mt-4 rounded-lg border border-gray-200 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Event required skills / stamps</p>
+          <div className="mt-4 rounded-[1.15rem] border border-slate-200 bg-white/80 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Event required skills / stamps</p>
             {requiredSkills.length > 0 ? (
               <div className="mt-2 flex flex-wrap gap-2">
                 {requiredSkills.map((skill: string) => (
-                  <span key={`${event.id}-${skill}`} className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                  <span key={`${event.id}-${skill}`} className="stamp-pill rounded-full px-2 py-1 text-xs text-slate-800">
                     {getSkillLabel(skill)}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="mt-1 text-sm text-gray-600">No required skills set for this event.</p>
+              <p className="mt-1 text-sm text-slate-600">No required skills set for this event.</p>
             )}
           </div>
 
@@ -265,16 +269,16 @@ export default async function EventManagementPage({ params }: EventManagementPag
                 const missingSkills = requiredSkills.filter((requiredSkill: string) => !volunteerSkills.includes(requiredSkill));
 
                 return (
-                  <article key={application.id} className="rounded-md border border-gray-200 p-4">
+                  <article key={application.id} className="rounded-[1.35rem] border border-slate-200 bg-white/80 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{displayName}</p>
-                        <p className="mt-1 text-sm text-gray-600">{volunteer?.contact_email || "No email"}</p>
-                        <p className="mt-1 text-xs text-gray-500">Application status: {application.status}</p>
+                        <p className="display-font text-xl font-semibold text-slate-900">{displayName}</p>
+                        <p className="mt-1 text-sm text-slate-600">{volunteer?.contact_email || "No email"}</p>
+                        <p className="mt-1 text-xs text-slate-500">Application status: {application.status}</p>
                         {volunteer?.contact_email ? (
                           <a
                             href={`mailto:${volunteer.contact_email}`}
-                            className="mt-1 inline-flex text-xs font-medium text-gray-900 underline"
+                            className="mt-1 inline-flex text-xs font-semibold text-slate-900 underline decoration-2 underline-offset-4"
                           >
                             Email volunteer
                           </a>
@@ -282,40 +286,40 @@ export default async function EventManagementPage({ params }: EventManagementPag
                       </div>
 
                       <div className="grid gap-2 sm:grid-cols-3 text-sm">
-                        <div className="rounded-lg bg-gray-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Hours completed</p>
-                          <p className="mt-1 font-semibold text-gray-900">{volunteer?.completed_hours ?? 0}</p>
+                        <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Hours completed</p>
+                          <p className="mt-1 font-semibold text-slate-900">{volunteer?.completed_hours ?? 0}</p>
                         </div>
-                        <div className="rounded-lg bg-gray-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Events completed</p>
-                          <p className="mt-1 font-semibold text-gray-900">{volunteer?.completed_events ?? 0}</p>
+                        <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Events completed</p>
+                          <p className="mt-1 font-semibold text-slate-900">{volunteer?.completed_events ?? 0}</p>
                         </div>
-                        <div className="rounded-lg bg-gray-50 p-3">
-                          <p className="text-xs uppercase tracking-wide text-gray-500">Overall volunteer rating</p>
-                          <p className="mt-1 font-semibold text-gray-900">{volunteer?.rating ?? 0}</p>
+                        <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Overall rating</p>
+                          <p className="mt-1 font-semibold text-slate-900">{volunteer?.rating ?? 0}</p>
                         </div>
                       </div>
 
-                      <div className="w-full rounded-lg border border-gray-200 p-3 text-sm">
-                        <p className="text-xs uppercase tracking-wide text-gray-500">Required skills and volunteer coverage</p>
+                      <div className="w-full rounded-[1rem] border border-slate-200 bg-slate-50 p-3 text-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Required skills and volunteer coverage</p>
                         <div className="mt-2">
-                          <p className="text-xs font-medium text-gray-700">Applicant skills</p>
+                          <p className="text-xs font-semibold text-slate-700">Applicant skills</p>
                           {volunteerSkills.length > 0 ? (
                             <div className="mt-1 flex flex-wrap gap-2">
                               {volunteerSkills.map((skill: string) => (
-                                <span key={`${application.id}-skill-${skill}`} className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                                <span key={`${application.id}-skill-${skill}`} className="stamp-pill rounded-full px-2 py-1 text-xs text-slate-800">
                                   {getSkillLabel(skill)}
                                 </span>
                               ))}
                             </div>
                           ) : (
-                            <p className="mt-1 text-xs text-gray-600">No skills listed.</p>
+                            <p className="mt-1 text-xs text-slate-600">No skills listed.</p>
                           )}
                         </div>
-                        <p className="mt-2 text-xs text-gray-700">
+                        <p className="mt-2 text-xs text-slate-700">
                           Has required: {matchedSkills.length > 0 ? matchedSkills.map(getSkillLabel).join(", ") : "None"}
                         </p>
-                        <p className="mt-1 text-xs text-gray-600">
+                        <p className="mt-1 text-xs text-slate-600">
                           Missing required: {missingSkills.length > 0 ? missingSkills.map(getSkillLabel).join(", ") : "None"}
                         </p>
                       </div>
@@ -323,13 +327,13 @@ export default async function EventManagementPage({ params }: EventManagementPag
                       <div className="flex gap-2">
                         <form action={acceptApplication}>
                           <input type="hidden" name="applicationId" value={application.id} />
-                          <button type="submit" className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
+                          <button type="submit" className="rounded-full primary-action px-3 py-2 text-sm font-semibold">
                             Accept
                           </button>
                         </form>
                         <form action={declineApplication}>
                           <input type="hidden" name="applicationId" value={application.id} />
-                          <button type="submit" className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-900">
+                          <button type="submit" className="rounded-full secondary-action px-3 py-2 text-sm font-semibold">
                             Decline
                           </button>
                         </form>
@@ -339,7 +343,7 @@ export default async function EventManagementPage({ params }: EventManagementPag
                 );
               })
             ) : (
-              <p className="text-sm text-gray-500">No pending applications right now.</p>
+              <p className="text-sm text-slate-600">No pending applications right now.</p>
             )}
           </div>
         </section>

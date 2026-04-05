@@ -14,27 +14,27 @@ type CurrentEventsMenuProps = {
 export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }: CurrentEventsMenuProps) {
   return (
     <details className="relative">
-      <summary className="cursor-pointer list-none rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900">
+      <summary className="stamp-pill cursor-pointer list-none rounded-full px-4 py-2 text-sm font-semibold">
         Current events
       </summary>
-      <div className="absolute right-0 top-full z-10 mt-2 w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="paper-panel absolute right-0 top-full z-10 mt-3 w-80 rounded-[1.35rem] p-4">
         {currentEvents.length > 0 ? (
           <div className="space-y-2">
             {currentEvents.map((event) => (
-              <div key={event.id} className="rounded-md border border-gray-200 px-3 py-2 text-xs">
+              <div key={event.id} className="rounded-[1rem] border border-slate-200 bg-white/80 px-3 py-2 text-xs">
                 {(() => {
                   const approvedCount = (event.event_applications ?? []).filter(
                     (application) => application.status === APPLICATION_STATUSES.ACCEPTED
                   ).length;
                   return (
                     <>
-                      <p className="font-semibold text-gray-800">{event.title}</p>
-                      <p className="text-gray-600">Address: {event.address || "Not specified"}</p>
-                      <p className="text-gray-600">Status: {event.status}</p>
-                      <p className="text-gray-600">
+                      <p className="font-semibold text-slate-800">{event.title}</p>
+                      <p className="text-slate-600">Address: {event.address || "Not specified"}</p>
+                      <p className="text-slate-600">Status: {event.status}</p>
+                      <p className="text-slate-600">
                         Approved volunteers: {approvedCount} / {event.max_volunteers}
                       </p>
-                      <p className="text-gray-600">Total applications: {event.event_applications?.length ?? 0}</p>
+                      <p className="text-slate-600">Total applications: {event.event_applications?.length ?? 0}</p>
                     </>
                   );
                 })()}
@@ -47,15 +47,15 @@ export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }
                       const isPendingReview = isPendingOrgReviewStatus(application.status);
 
                       return (
-                        <div key={application.id} className="rounded border border-gray-200 bg-gray-50 p-2">
-                          <p className="font-medium text-gray-800">{volunteer?.name || "Volunteer"}</p>
-                          <p className="text-gray-600">{volunteer?.contact_email || "No email"}</p>
-                          <p className="text-gray-600">Application status: {getApplicationStatusLabel(application.status)}</p>
+                        <div key={application.id} className="rounded-[1rem] border border-slate-200 bg-white/80 p-2">
+                          <p className="font-semibold text-slate-800">{volunteer?.name || "Volunteer"}</p>
+                          <p className="text-slate-600">{volunteer?.contact_email || "No email"}</p>
+                          <p className="text-slate-600">Application status: {getApplicationStatusLabel(application.status)}</p>
                           {volunteer?.contact_email ? (
                             <p>
                               <a
                                 href={`mailto:${volunteer.contact_email}`}
-                                className="font-medium text-gray-900 underline"
+                                className="font-semibold text-slate-900 underline decoration-2 underline-offset-4"
                                 aria-label={`Email ${volunteer.name || "volunteer"}`}
                               >
                                 Email volunteer
@@ -63,18 +63,18 @@ export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }
                             </p>
                           ) : null}
 
-                          <details className="mt-2 rounded border border-gray-200 bg-white p-2">
-                            <summary className="cursor-pointer font-medium text-gray-800">Volunteer profile</summary>
-                            <div className="mt-2 space-y-1 text-gray-600">
+                          <details className="mt-2 rounded-[1rem] border border-slate-200 bg-slate-50 p-2">
+                            <summary className="cursor-pointer font-semibold text-slate-800">Volunteer profile</summary>
+                            <div className="mt-2 space-y-1 text-slate-600">
                               <p>Completed hours: {volunteer?.completed_hours ?? 0}</p>
                               <p>Completed events: {volunteer?.completed_events ?? 0}</p>
                               <p>Rating: {volunteer?.rating ?? 0}</p>
                               <div>
-                                <p className="font-medium text-gray-700">Skills</p>
+                                <p className="font-semibold text-slate-700">Skills</p>
                                 {volunteerSkills.length > 0 ? (
                                   <div className="mt-1 flex flex-wrap gap-1">
                                     {volunteerSkills.map((skill) => (
-                                      <span key={`${application.id}-${skill}`} className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-700">
+                                      <span key={`${application.id}-${skill}`} className="stamp-pill rounded px-1.5 py-0.5 text-[11px] text-slate-700">
                                         {skill}
                                       </span>
                                     ))}
@@ -93,7 +93,7 @@ export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }
                                 <button
                                   type="submit"
                                   aria-label={`Approve ${volunteer?.name || "volunteer"} for ${event.title}`}
-                                  className="rounded border border-gray-300 px-2 py-1 text-[11px] font-medium text-gray-900"
+                                  className="rounded-full primary-action px-2 py-1 text-[11px] font-semibold"
                                 >
                                   Accept
                                 </button>
@@ -103,7 +103,7 @@ export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }
                                 <button
                                   type="submit"
                                   aria-label={`Decline ${volunteer?.name || "volunteer"} for ${event.title}`}
-                                  className="rounded border border-gray-300 px-2 py-1 text-[11px] font-medium text-gray-900"
+                                  className="rounded-full secondary-action px-2 py-1 text-[11px] font-semibold"
                                 >
                                   Decline
                                 </button>
@@ -121,7 +121,7 @@ export default function CurrentEventsMenu({ currentEvents, applicationsByEvent }
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No recruiting or ongoing events.</p>
+          <p className="text-sm text-slate-600">No recruiting or ongoing events.</p>
         )}
       </div>
     </details>

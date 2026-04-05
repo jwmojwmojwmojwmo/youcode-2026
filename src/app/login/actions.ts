@@ -47,7 +47,7 @@ export async function signup(formData: FormData) {
   }
 
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}`);
+    redirect(`/signup?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/");

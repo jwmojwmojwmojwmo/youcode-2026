@@ -1,5 +1,6 @@
 "use server";
 
+import { APPLICATION_STATUSES } from "@/lib/application-status";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -38,6 +39,20 @@ export async function submitOrganizationReview(formData: FormData) {
 
   if (!organization) {
     return;
+  }
+
+  const { data: eligibleHistory } = await supabase
+    .from("event_applications")
+    .select("id, events!inner(org_id)")
+    .eq("volunteer_id", user.id)
+    .eq("status", APPLICATION_STATUSES.ACCEPTED)
+    .eq("attended", true)
+    .eq("events.org_id", orgId)
+    .limit(1)
+    .maybeSingle();
+
+  if (!eligibleHistory?.id) {
+    redirect(`/organizations/${orgId}?reviewError=volunteering-required`);
   }
 
   const { data: volunteer } = await supabase

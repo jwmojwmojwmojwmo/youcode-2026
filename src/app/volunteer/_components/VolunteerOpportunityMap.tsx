@@ -76,7 +76,7 @@ function CenterMapOnCurrentLocation({
         maximumAge: 60000
       }
     );
-  }, [map, onStatusChange, onLocationChange, locationRequestKey]);
+  }, [map, onStatusChange, onLocationChange, onLocationSettled, locationRequestKey]);
 
   return null;
 }

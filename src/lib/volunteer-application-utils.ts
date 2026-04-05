@@ -6,7 +6,9 @@ export type VolunteerApplicationEventMeta = {
   hours_given?: number;
 };
 
-export function buildEventMetaById(events: EventCard[]) {
+export type VolunteerApplicationEventMetaInput = Pick<EventCard, "id" | "title" | "status" | "hours_given">;
+
+export function buildEventMetaById(events: VolunteerApplicationEventMetaInput[]) {
   return new Map(
     events.map((event) => [
       event.id,

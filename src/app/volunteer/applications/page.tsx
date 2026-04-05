@@ -1,10 +1,13 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import VolunteerHeaderMenus from "@/app/volunteer/_components/VolunteerHeaderMenus";
 import ReloadButton from "@/components/ReloadButton";
 import { APPLICATION_STATUSES } from "@/lib/application-status";
-import { buildEventMetaById, normalizeVolunteerApplications } from "@/lib/volunteer-application-utils";
+import {
+  buildEventMetaById,
+  normalizeVolunteerApplications,
+  type VolunteerApplicationEventMetaInput
+} from "@/lib/volunteer-application-utils";
 import {
   getVolunteerApplicationEarnedHoursLabel,
   getVolunteerApplicationEventTitle,
@@ -44,12 +47,13 @@ export default async function VolunteerApplicationsPage({ searchParams }: Volunt
 
   const { data: eventsData } = await supabase
     .from("events")
-    .select("id, title, status, hours_given, created_at, description, address, lat, lng, compensation, max_volunteers, organizations(id, name), skills_needed, event_applications(id, status), tags(name)")
+    .select("id, title, status, hours_given")
     .in("id", (applicationsData ?? []).map((application) => application.event_id));
 
+  const eventMetaRows = (eventsData ?? []) as VolunteerApplicationEventMetaInput[];
   const applications = normalizeVolunteerApplications(
     (applicationsData ?? []) as VolunteerApplication[],
-    buildEventMetaById((eventsData ?? []) as any)
+    buildEventMetaById(eventMetaRows)
   );
   const { currentApplications, pastApplications } = splitVolunteerApplicationsByEventStatus(applications);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;

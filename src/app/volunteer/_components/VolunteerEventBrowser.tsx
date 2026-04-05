@@ -254,18 +254,23 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
           </button>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
-          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+        <div className="mt-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+          <div className="min-w-0 overflow-hidden rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Visible</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{filteredEvents.length}</p>
+            <p className="mt-1 break-words text-base font-semibold leading-tight text-slate-900 dark:text-slate-50">{filteredEvents.length}</p>
           </div>
-          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+          <div className="min-w-0 overflow-hidden rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Mapped</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{eventsWithCoordinates.length}</p>
+            <p className="mt-1 break-words text-base font-semibold leading-tight text-slate-900 dark:text-slate-50">{eventsWithCoordinates.length}</p>
           </div>
-          <div className="rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+          <div className="min-w-0 overflow-hidden rounded-[1rem] border border-slate-200 bg-white/80 p-3 dark:border-slate-700 dark:bg-slate-900/75">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Mode</p>
-            <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-50">{getSortLabel(sortOption)}</p>
+            <p
+              title={getSortLabel(sortOption)}
+              className="mt-1 truncate text-[10px] font-semibold leading-none text-slate-900 dark:text-slate-50 sm:text-[11px]"
+            >
+              {getSortLabel(sortOption)}
+            </p>
           </div>
         </div>
 
@@ -533,7 +538,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
         />
 
         {activeEvent && isDetailsPanelOpen ? (
-          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[700] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/94 shadow-[0_24px_60px_rgba(20,33,46,0.24)] backdrop-blur-sm dark:border-slate-700 dark:bg-slate-950/94 dark:shadow-[0_24px_60px_rgba(0,0,0,0.42)]">
+          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[700] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_24px_60px_rgba(20,33,46,0.24)] dark:border-slate-700 dark:bg-slate-950 dark:shadow-[0_24px_60px_rgba(0,0,0,0.42)]">
             <div className="flex h-full min-h-0 flex-col">
               <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-slate-700">
                 <div className="min-w-0">
@@ -565,28 +570,28 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
                 <p className="text-sm leading-6 text-slate-700 dark:text-slate-300">{activeEvent.description || "No description provided."}</p>
 
                 <div className="grid gap-2 text-sm text-slate-700 dark:text-slate-300 sm:grid-cols-2">
-                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Address</p>
                     <p className="mt-1 break-words">{activeEvent.address || "Address not specified"}</p>
                   </div>
-                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+                  <div className="rounded-[1rem] border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Capacity</p>
                     <p className="mt-1">{activeEvent.hours_given} hours, {activeEvent.max_volunteers} volunteers</p>
                   </div>
                 </div>
 
                 <div className="grid gap-2 text-sm text-slate-700 dark:text-slate-300 sm:grid-cols-2">
-                  <div className="rounded-[1rem] border border-slate-200 bg-white/85 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+                  <div className="rounded-[1rem] border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Posted</p>
                     <p className="mt-1">{new Date(activeEvent.created_at).toLocaleDateString()}</p>
                   </div>
-                  <div className="rounded-[1rem] border border-slate-200 bg-white/85 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+                  <div className="rounded-[1rem] border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Your status</p>
                     <p className="mt-1">{isSignedIn ? (activeEventApplicationStatus ?? "Not applied") : "Sign in to apply"}</p>
                   </div>
                 </div>
 
-                <div className="rounded-[1rem] border border-slate-200 bg-white/85 p-3 dark:border-slate-700 dark:bg-slate-900/75">
+                <div className="rounded-[1rem] border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-300">Application</p>
                     <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">

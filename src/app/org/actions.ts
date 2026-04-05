@@ -24,14 +24,34 @@ async function ensureOrganizationProfile(userId: string, email: string | null, n
   const supabase = await createClient();
   const orgName = name?.trim() || email || "Organization";
 
-  await supabase.from("organizations").upsert(
-    {
+  const { data: existingOrganization } = await supabase
+    .from("organizations")
+    .select("id, name, contact_email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!existingOrganization) {
+    await supabase.from("organizations").insert({
       id: userId,
       name: orgName,
       contact_email: email
-    },
-    { onConflict: "id" }
-  );
+    });
+    return;
+  }
+
+  const updates: { contact_email?: string | null; name?: string } = {};
+
+  if (email && existingOrganization.contact_email !== email) {
+    updates.contact_email = email;
+  }
+
+  if ((!existingOrganization.name || !existingOrganization.name.trim()) && orgName) {
+    updates.name = orgName;
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await supabase.from("organizations").update(updates).eq("id", userId);
+  }
 }
 
 export async function organizationSignup(formData: FormData) {

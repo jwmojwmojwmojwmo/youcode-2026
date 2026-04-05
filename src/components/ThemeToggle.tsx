@@ -79,7 +79,8 @@ export default function ThemeToggle() {
       aria-label={buttonLabel}
       title={buttonLabel}
     >
-      {buttonLabel}
+      <span>Switch To {theme === "dark" ? "Light" : "Dark"}</span>
+      <span className="ml-1 text-[0.78em] font-medium opacity-90">Mode</span>
     </button>
   );
 }

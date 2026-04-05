@@ -80,6 +80,39 @@ export interface Database {
                 Insert: Optional<Database["public"]["Tables"]["event_applications"]["Row"], "id" | "status" | "applied_at" | "attended" | "org_rating">;
                 Update: Partial<Database["public"]["Tables"]["event_applications"]["Row"]>;
             }
+            volunteer_notifications: {
+                Row: {
+                    id: string;
+                    volunteer_id: string;
+                    event_id: string;
+                    application_id: string | null;
+                    kind: string;
+                    title: string;
+                    message: string;
+                    metadata: Json;
+                    created_at: string;
+                    read_at: string | null;
+                }
+                Insert: Optional<Database["public"]["Tables"]["volunteer_notifications"]["Row"], "id" | "application_id" | "metadata" | "created_at" | "read_at">;
+                Update: Partial<Database["public"]["Tables"]["volunteer_notifications"]["Row"]>;
+            }
+            organization_notifications: {
+                Row: {
+                    id: string;
+                    org_id: string;
+                    event_id: string;
+                    application_id: string;
+                    volunteer_id: string;
+                    kind: string;
+                    title: string;
+                    message: string;
+                    metadata: Json;
+                    created_at: string;
+                    read_at: string | null;
+                }
+                Insert: Optional<Database["public"]["Tables"]["organization_notifications"]["Row"], "id" | "metadata" | "created_at" | "read_at">;
+                Update: Partial<Database["public"]["Tables"]["organization_notifications"]["Row"]>;
+            }
             organization_reviews: {
                 Row: {
                     id: string;

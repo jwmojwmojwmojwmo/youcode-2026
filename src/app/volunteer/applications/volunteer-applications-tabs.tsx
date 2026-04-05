@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { getApplicationStatusLabel } from "@/lib/application-status";
 import { cn } from "@/lib/utils";
@@ -10,6 +11,8 @@ type ApplicationViewItem = {
   status: string;
   appliedAt: string | null;
   hoursLabel: string;
+  organizationId: string | null;
+  organizationName: string | null;
 };
 
 type VolunteerApplicationsTabsProps = {
@@ -79,6 +82,22 @@ export default function VolunteerApplicationsTabs({
               <p className="display-font text-xl font-semibold text-slate-900">{application.title}</p>
               <p className="mt-1 text-sm text-slate-700">Status: {getApplicationStatusLabel(application.status)}</p>
               <p className="mt-1 text-sm text-slate-700">Hours earned: {application.hoursLabel}</p>
+              {activeTab === "past" ? (
+                application.organizationId ? (
+                  <p className="mt-2 text-sm text-slate-700">
+                    Company:{" "}
+                    <Link
+                      href={`/organizations/${application.organizationId}#leave-review`}
+                      className="font-semibold text-slate-900 underline decoration-2 underline-offset-4"
+                      aria-label={`Open ${application.organizationName || "organization"} profile to leave a review`}
+                    >
+                      {application.organizationName || "Organization"}
+                    </Link>
+                  </p>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-600">Company profile unavailable for this event.</p>
+                )
+              ) : null}
               {application.appliedAt ? (
                 <p className="mt-1 text-xs text-slate-600">Applied: {new Date(application.appliedAt).toLocaleDateString()}</p>
               ) : null}

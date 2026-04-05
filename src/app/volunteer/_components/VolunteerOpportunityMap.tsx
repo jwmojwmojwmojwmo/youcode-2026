@@ -13,6 +13,7 @@ export type VolunteerMapLocationStatus = "idle" | "granted" | "denied" | "unsupp
 type VolunteerOpportunityMapProps = {
   events: EventCard[];
   activeEventId?: string | null;
+  focusActiveEventRequestKey?: number;
   onSelectEvent?: (eventId: string) => void;
   userLocation?: Coordinates | null;
   onUserLocationChange?: (location: Coordinates | null) => void;
@@ -29,12 +30,14 @@ function CenterMapOnCurrentLocation({
   onStatusChange,
   onLocationChange,
   onLocationSettled,
-  locationRequestKey
+  locationRequestKey,
+  userLocation
 }: {
   onStatusChange: (status: VolunteerMapLocationStatus) => void;
   onLocationChange?: (location: Coordinates | null) => void;
   onLocationSettled?: () => void;
   locationRequestKey?: number;
+  userLocation?: Coordinates | null;
 }) {
   const map = useMap();
   const latestRequestRef = useRef<number | null>(null);
@@ -45,6 +48,12 @@ function CenterMapOnCurrentLocation({
       return;
     }
     latestRequestRef.current = requestToken;
+
+    if (userLocation && Number.isFinite(userLocation.lat) && Number.isFinite(userLocation.lng)) {
+      map.setView([userLocation.lat, userLocation.lng], Math.max(map.getZoom(), 13), {
+        animate: true
+      });
+    }
 
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       onStatusChange("unsupported");
@@ -76,7 +85,7 @@ function CenterMapOnCurrentLocation({
         maximumAge: 60000
       }
     );
-  }, [map, onStatusChange, onLocationChange, onLocationSettled, locationRequestKey]);
+  }, [map, onStatusChange, onLocationChange, onLocationSettled, locationRequestKey, userLocation]);
 
   return null;
 }
@@ -84,16 +93,23 @@ function CenterMapOnCurrentLocation({
 function FocusMapOnActiveEvent({
   activeEventId,
   events,
-  canFocusActiveEvent
+  focusRequestKey
 }: {
   activeEventId?: string | null;
   events: EventCard[];
-  canFocusActiveEvent: boolean;
+  focusRequestKey?: number;
 }) {
   const map = useMap();
+  const latestFocusRequestRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!canFocusActiveEvent || !activeEventId) {
+    const requestToken = focusRequestKey ?? 0;
+    if (latestFocusRequestRef.current === requestToken) {
+      return;
+    }
+    latestFocusRequestRef.current = requestToken;
+
+    if (!activeEventId) {
       return;
     }
 
@@ -107,7 +123,7 @@ function FocusMapOnActiveEvent({
         animate: false
       });
     });
-  }, [activeEventId, canFocusActiveEvent, events, map]);
+  }, [activeEventId, events, map, focusRequestKey]);
 
   return null;
 }
@@ -128,6 +144,7 @@ function buildMarkerIcon(hoursGiven: number, isActive: boolean) {
 export default function VolunteerOpportunityMap({
   events,
   activeEventId,
+  focusActiveEventRequestKey,
   onSelectEvent,
   userLocation,
   radiusKm,
@@ -137,8 +154,6 @@ export default function VolunteerOpportunityMap({
   onLocationStatusChange,
   className
 }: VolunteerOpportunityMapProps) {
-  const [locationStatus, setLocationStatus] = useState<VolunteerMapLocationStatus>("idle");
-  const [locationSettled, setLocationSettled] = useState(false);
   const eventsWithLocation = events.filter((event) => Number.isFinite(event.lat) && Number.isFinite(event.lng));
   const [mapCenter] = useState<[number, number]>(() => {
     const firstEvent = eventsWithLocation[0] ?? events[0] ?? null;
@@ -146,7 +161,6 @@ export default function VolunteerOpportunityMap({
   });
 
   const handleLocationStatusChange = (status: VolunteerMapLocationStatus) => {
-    setLocationStatus(status);
     onLocationStatusChange?.(status);
   };
 
@@ -157,14 +171,15 @@ export default function VolunteerOpportunityMap({
           <CenterMapOnCurrentLocation
             onStatusChange={handleLocationStatusChange}
             onLocationChange={onUserLocationChange}
-            onLocationSettled={() => setLocationSettled(true)}
+            onLocationSettled={() => undefined}
             locationRequestKey={locationRequestKey}
+            userLocation={userLocation}
           />
           <ZoomControl position="topright" />
           <FocusMapOnActiveEvent
             activeEventId={activeEventId}
             events={eventsWithLocation}
-            canFocusActiveEvent={locationSettled || locationStatus !== "idle"}
+            focusRequestKey={focusActiveEventRequestKey}
           />
 
           <TileLayer

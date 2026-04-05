@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { APPLICATION_STATUSES } from "@/lib/application-status";
 import type { OrganizationEvent } from "@/types/organization";
 
 type OrgEventRow = OrganizationEvent & {
@@ -60,7 +61,12 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
         {activeTab === "current" ? (
           presentEvents.length > 0 ? (
             presentEvents.map((event) => {
-              const approvedCount = (event.event_applications ?? []).filter((application) => application.status === "Accepted").length;
+              const approvedCount = (event.event_applications ?? []).filter((application) => application.status === APPLICATION_STATUSES.ACCEPTED).length;
+              const appliedCount = (event.event_applications ?? []).filter((application) => (
+                application.status === APPLICATION_STATUSES.APPLIED
+                || application.status === APPLICATION_STATUSES.WAITLISTED
+                || application.status === APPLICATION_STATUSES.NEEDS_SKILL_VERIFICATION
+              )).length;
 
               return (
                 <article key={event.id} className="rounded-[1.35rem] border border-slate-200 bg-white/85 p-4">
@@ -76,6 +82,7 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="stamp-pill rounded-full px-3 py-1">{appliedCount} applied</span>
                     <span className="stamp-pill rounded-full px-3 py-1">{approvedCount} accepted</span>
                     <span className="stamp-pill rounded-full px-3 py-1">{event.max_volunteers} capacity</span>
                   </div>
@@ -87,7 +94,12 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
           )
         ) : pastEvents.length > 0 ? (
           pastEvents.map((event) => {
-            const attendedCount = (event.event_applications ?? []).filter((application) => application.status === "Accepted").length;
+            const attendedCount = (event.event_applications ?? []).filter((application) => application.status === APPLICATION_STATUSES.ACCEPTED).length;
+            const appliedCount = (event.event_applications ?? []).filter((application) => (
+              application.status === APPLICATION_STATUSES.APPLIED
+              || application.status === APPLICATION_STATUSES.WAITLISTED
+              || application.status === APPLICATION_STATUSES.NEEDS_SKILL_VERIFICATION
+            )).length;
 
             return (
               <article key={event.id} className="rounded-[1.35rem] border border-slate-200 bg-white/85 p-4">
@@ -103,6 +115,7 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+                  <span className="stamp-pill rounded-full px-3 py-1">{appliedCount} applied</span>
                   <span className="stamp-pill rounded-full px-3 py-1">{attendedCount} accepted</span>
                   <span className="stamp-pill rounded-full px-3 py-1">Completed</span>
                 </div>

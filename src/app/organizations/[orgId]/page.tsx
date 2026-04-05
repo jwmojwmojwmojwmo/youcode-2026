@@ -189,7 +189,7 @@ export default async function OrganizationProfilePage({ params, searchParams }: 
           </div>
         </section>
 
-        <section className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
+        <section id="leave-review" tabIndex={-1} className="paper-panel rounded-[1.75rem] p-5 sm:p-6">
           <p className="kicker">Reputation</p>
           <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Volunteer reviews</h2>
           <p className="mt-2 text-sm text-slate-600">Simple, transparent feedback from volunteers who worked with this organization.</p>

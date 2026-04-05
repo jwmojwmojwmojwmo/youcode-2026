@@ -97,6 +97,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
   const [locationStatus, setLocationStatus] = useState<VolunteerMapLocationStatus>("idle");
   const [locationRequestKey, setLocationRequestKey] = useState(0);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
+  const [activeEventFocusRequestKey, setActiveEventFocusRequestKey] = useState(0);
   const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
   const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,6 +233,16 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
   const openDetailsForEvent = (eventId: string) => {
     setActiveEventId(eventId);
     setIsDetailsPanelOpen(true);
+    setActiveEventFocusRequestKey((previous) => previous + 1);
+  };
+
+  const requestLocationRefresh = () => {
+    setLocationRequestKey((previous) => previous + 1);
+  };
+
+  const handleCenterMapToUserLocation = () => {
+    setIsDetailsPanelOpen(false);
+    requestLocationRefresh();
   };
 
   const handleReset = () => {
@@ -239,8 +250,6 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
     setSortOption("recommended");
     setIsRadiusFilterEnabled(false);
     setRadiusKm(25);
-    setUserLocation(null);
-    setLocationStatus("idle");
     setActiveEventId(null);
     setIsDetailsPanelOpen(false);
     setIsSearchFocused(false);
@@ -255,13 +264,22 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
             <h3 className="display-font mt-1 break-words text-2xl font-semibold text-slate-900 dark:text-slate-50">Browse events</h3>
             <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">Use search, filters, or the map to find opportunities.</p>
           </div>
-          <button
-            type="button"
-            onClick={handleReset}
-            className="secondary-action rounded-full px-3 py-2 text-xs font-semibold"
-          >
-            Reset
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCenterMapToUserLocation}
+              className="secondary-action rounded-full px-3 py-2 text-xs font-semibold"
+            >
+              My location
+            </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="secondary-action rounded-full px-3 py-2 text-xs font-semibold"
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
         <div className="mt-4 space-y-4 overflow-visible pr-1">
@@ -397,7 +415,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
 
             <button
               type="button"
-              onClick={() => setLocationRequestKey((previous) => previous + 1)}
+              onClick={requestLocationRefresh}
               className="mt-3 w-full rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-800 transition hover:border-slate-500 dark:border-slate-700 dark:bg-slate-950/80 dark:text-slate-100 dark:hover:border-slate-500"
             >
               Enable location access
@@ -411,6 +429,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
         <VolunteerOpportunityMap
           events={visibleMapEvents}
           activeEventId={activeEventId}
+          focusActiveEventRequestKey={activeEventFocusRequestKey}
           onSelectEvent={openDetailsForEvent}
           userLocation={userLocation}
           radiusKm={radiusKm}
@@ -422,7 +441,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
         />
 
         {activeEvent && isDetailsPanelOpen ? (
-          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[120    0] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
+          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[1200] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <div className="flex h-full min-h-0 flex-col">
               <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-slate-700">
                 <div className="min-w-0">

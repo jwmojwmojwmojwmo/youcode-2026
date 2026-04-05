@@ -74,9 +74,6 @@ export default async function OrganizationProfilePage() {
   const averageReviewRating = reviews.length > 0
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
     : null;
-  const fiveStarCount = reviews.filter((review) => review.rating >= 5).length;
-  const fourStarCount = reviews.filter((review) => review.rating >= 4 && review.rating < 5).length;
-  const underFourStarCount = reviews.filter((review) => review.rating < 4).length;
   const organizationInitials = organization.name
     .split(" ")
     .filter(Boolean)
@@ -152,9 +149,6 @@ export default async function OrganizationProfilePage() {
           <h2 className="display-font mt-1 text-2xl font-semibold text-slate-900">Reviews summary</h2>
           <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
             <article className="rounded-[1.2rem] border border-slate-200 bg-white p-4">
-              <p className="text-sm font-semibold text-slate-900">Good benefits: {fiveStarCount}</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">Very good: {fourStarCount}</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">Needs improvement: {underFourStarCount}</p>
               <p className="mt-4 text-sm font-semibold text-slate-900">Overall: {averageReviewRating ? `${averageReviewRating} stars` : "No ratings"}</p>
             </article>
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { organizationLogin } from "../actions";
 
 const errorMessages: Record<string, string> = {
@@ -35,6 +36,16 @@ export default async function OrganizationLoginPage({ searchParams }: OrgLoginPa
         </section>
 
         <section className="mx-auto max-w-md paper-panel rounded-[1.75rem] p-6 sm:p-7">
+          <div className="mb-4 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="The Volunteer Hub"
+              width={640}
+              height={360}
+              className="h-auto w-full max-w-[18rem]"
+              priority
+            />
+          </div>
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <Link href="/org/login" className="primary-action rounded-full px-4 py-2 text-sm font-semibold min-w-[9.5rem] text-center" aria-current="page">
               Log in
@@ -44,6 +55,7 @@ export default async function OrganizationLoginPage({ searchParams }: OrgLoginPa
             </Link>
           </div>
           <p className="kicker">Organization access</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">The Volunteer Hub</p>
           <h1 className="display-font mt-2 text-3xl font-semibold text-slate-900">Organization login</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">Manage events, attendance, and applications from your organization pages.</p>
 

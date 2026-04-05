@@ -15,8 +15,13 @@ const bodyFont = Atkinson_Hyperlegible({
 });
 
 export const metadata: Metadata = {
-  title: "Volunteer Hub",
-  description: "Volunteer Hub connects volunteers and organizations through event discovery, applications, and verified service tracking"
+  title: "The Volunteer Hub",
+  description: "The Volunteer Hub connects volunteers and organizations through event discovery, applications, and verified service tracking",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png"
+  }
 };
 
 export default function RootLayout({

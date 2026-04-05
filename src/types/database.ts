@@ -125,6 +125,18 @@ export interface Database {
                 Insert: Optional<Database["public"]["Tables"]["organization_reviews"]["Row"], "id" | "review_text" | "created_at">;
                 Update: Partial<Database["public"]["Tables"]["organization_reviews"]["Row"]>;
             }
+            event_notes: {
+                Row: {
+                    id: string;
+                    org_id: string;
+                    volunteer_id: string;
+                    event_name: string;
+                    note_text: string;
+                    created_at: string;
+                }
+                Insert: Optional<Database["public"]["Tables"]["event_notes"]["Row"], "id" | "created_at">;
+                Update: Partial<Database["public"]["Tables"]["event_notes"]["Row"]>;
+            }
         }
     }
 };

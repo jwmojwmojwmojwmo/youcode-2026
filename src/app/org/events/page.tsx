@@ -20,6 +20,26 @@ type OrganizationNotificationItem = {
   read_at: string | null;
 };
 
+type EventNoteRow = {
+  id: string;
+  volunteer_id: string;
+  event_name: string;
+  note_text: string;
+  created_at: string;
+};
+
+type OrgEventNoteItem = {
+  id: string;
+  volunteerName: string;
+  noteText: string;
+  createdAt: string;
+};
+
+type VolunteerNameRow = {
+  id: string;
+  name: string;
+};
+
 function getOrganizationNotificationTypeLabel(kind: string) {
   switch (kind) {
     case "new_application":
@@ -27,6 +47,10 @@ function getOrganizationNotificationTypeLabel(kind: string) {
     default:
       return "Update";
   }
+}
+
+function toEventNameKey(eventName: string) {
+  return eventName.trim().toLowerCase();
 }
 
 export default async function OrganizationEventsPage() {
@@ -67,6 +91,42 @@ export default async function OrganizationEventsPage() {
     ? []
     : (notificationsData ?? []) as OrganizationNotificationItem[];
   const unreadNotificationsCount = notifications.filter((notification) => !notification.read_at).length;
+
+  const { data: eventNotesData } = await supabase
+    .from("event_notes")
+    .select("id, volunteer_id, event_name, note_text, created_at")
+    .eq("org_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(80);
+
+  const eventNotes = (eventNotesData ?? []) as EventNoteRow[];
+  const noteVolunteerIds = [...new Set(eventNotes.map((note) => note.volunteer_id))];
+  const { data: noteVolunteersData } = noteVolunteerIds.length
+    ? await supabase
+        .from("volunteers")
+        .select("id, name")
+        .in("id", noteVolunteerIds)
+    : { data: [] };
+  const noteVolunteersById = new Map(
+    ((noteVolunteersData ?? []) as VolunteerNameRow[]).map((volunteer) => [volunteer.id, volunteer])
+  );
+  const eventNotesByEventName: Record<string, OrgEventNoteItem[]> = {};
+
+  for (const note of eventNotes) {
+    const eventNameKey = toEventNameKey(note.event_name);
+    const volunteerName = noteVolunteersById.get(note.volunteer_id)?.name || "Volunteer";
+
+    if (!eventNotesByEventName[eventNameKey]) {
+      eventNotesByEventName[eventNameKey] = [];
+    }
+
+    eventNotesByEventName[eventNameKey].push({
+      id: note.id,
+      volunteerName,
+      noteText: note.note_text,
+      createdAt: note.created_at
+    });
+  }
 
   const presentEvents = events.filter((event) => {
     const status = event.status.toLowerCase();
@@ -149,7 +209,7 @@ export default async function OrganizationEventsPage() {
           </ul>
         </section>
 
-        <OrgEventsTabs presentEvents={presentEvents} pastEvents={pastEvents} />
+        <OrgEventsTabs presentEvents={presentEvents} pastEvents={pastEvents} eventNotesByEventName={eventNotesByEventName} />
       </div>
     </main>
   );

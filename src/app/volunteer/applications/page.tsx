@@ -15,12 +15,13 @@ import {
   splitVolunteerApplicationsByEventStatus
 } from "@/lib/volunteer-application-utils";
 import type { VolunteerApplication } from "@/types/volunteer";
-import { clearVolunteerNotifications, markVolunteerNotificationsAsRead } from "./actions";
+import { clearVolunteerNotifications, markVolunteerNotificationsAsRead, submitVolunteerEventNote } from "./actions";
 import VolunteerApplicationsTabs from "./volunteer-applications-tabs";
 
 type VolunteerApplicationsPageProps = {
   searchParams?: Promise<{
     tab?: string;
+    noteStatus?: string;
   }>;
 };
 
@@ -41,6 +42,22 @@ type VolunteerNotificationItem = {
   message: string;
   created_at: string;
   read_at: string | null;
+};
+
+type VolunteerEventNote = {
+  id: string;
+  org_id: string;
+  event_name: string;
+  note_text: string;
+  created_at: string;
+};
+
+type EventNoteDraftItem = {
+  applicationId: string;
+  orgId: string;
+  organizationName: string | null;
+  eventName: string;
+  existingNote: string;
 };
 
 type EmbeddedOrganization = {
@@ -105,6 +122,25 @@ function getNotificationTypeLabel(kind: string) {
   }
 }
 
+function buildEventNoteKey(orgId: string, eventName: string) {
+  return `${orgId}::${eventName.trim().toLowerCase()}`;
+}
+
+function getEventNoteStatusMessage(noteStatus: string | undefined) {
+  switch (noteStatus) {
+    case "saved":
+      return { tone: "success", text: "Your note was saved and is now visible to the organization." };
+    case "updated":
+      return { tone: "success", text: "Your note was updated successfully." };
+    case "invalid":
+      return { tone: "error", text: "Please enter a note with at least 8 characters before submitting." };
+    case "not-eligible":
+      return { tone: "error", text: "You can only submit notes for completed events where you were accepted and marked attended." };
+    default:
+      return null;
+  }
+}
+
 export default async function VolunteerApplicationsPage({ searchParams }: VolunteerApplicationsPageProps) {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getUser();
@@ -137,6 +173,12 @@ export default async function VolunteerApplicationsPage({ searchParams }: Volunt
     .order("created_at", { ascending: false })
     .limit(25);
 
+  const { data: eventNotesData } = await supabase
+    .from("event_notes")
+    .select("id, org_id, event_name, note_text, created_at")
+    .eq("volunteer_id", user.id)
+    .order("created_at", { ascending: false });
+
   const eventMetaRows = (eventsData ?? []) as VolunteerApplicationEventMetaInput[];
   const applications = normalizeVolunteerApplications(
     (applicationsData ?? []) as VolunteerApplication[],
@@ -145,6 +187,7 @@ export default async function VolunteerApplicationsPage({ searchParams }: Volunt
   const { currentApplications, pastApplications } = splitVolunteerApplicationsByEventStatus(applications);
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const tabParam = (resolvedSearchParams?.tab || "").toLowerCase();
+  const noteStatusMessage = getEventNoteStatusMessage(resolvedSearchParams?.noteStatus);
   const initialTab = tabParam === "accepted" || tabParam === "rejected" || tabParam === "past" ? tabParam : "applied";
 
   const currentViewItems: ApplicationViewItem[] = currentApplications.map((application) => ({
@@ -182,6 +225,52 @@ export default async function VolunteerApplicationsPage({ searchParams }: Volunt
     ? []
     : (notificationsData ?? []) as VolunteerNotificationItem[];
   const unreadNotificationsCount = notifications.filter((notification) => !notification.read_at).length;
+
+  const notes = (eventNotesData ?? []) as VolunteerEventNote[];
+  const noteByEventKey = new Map<string, VolunteerEventNote>();
+  for (const note of notes) {
+    const key = buildEventNoteKey(note.org_id, note.event_name);
+    if (!noteByEventKey.has(key)) {
+      noteByEventKey.set(key, note);
+    }
+  }
+
+  const noteDraftByEventKey = new Map<string, EventNoteDraftItem>();
+  for (const application of applicationsWithOrgData) {
+    const eventRelation = Array.isArray(application.events) ? application.events[0] : application.events;
+    const eventStatus = String(eventRelation?.status ?? "").toLowerCase();
+    const isEligibleForEventNotes =
+      application.status === APPLICATION_STATUSES.ACCEPTED
+      && Boolean(application.attended)
+      && eventStatus === "completed";
+
+    if (!isEligibleForEventNotes) {
+      continue;
+    }
+
+    const organizationInfo = getApplicationOrganizationInfo(application);
+    const orgId = organizationInfo.organizationId;
+    const eventName = (eventRelation?.title || "").trim();
+
+    if (!orgId || !eventName) {
+      continue;
+    }
+
+    const key = buildEventNoteKey(orgId, eventName);
+    if (noteDraftByEventKey.has(key)) {
+      continue;
+    }
+
+    noteDraftByEventKey.set(key, {
+      applicationId: application.id,
+      orgId,
+      organizationName: organizationInfo.organizationName,
+      eventName,
+      existingNote: noteByEventKey.get(key)?.note_text ?? ""
+    });
+  }
+
+  const eventNoteDrafts = Array.from(noteDraftByEventKey.values());
 
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
@@ -276,6 +365,80 @@ export default async function VolunteerApplicationsPage({ searchParams }: Volunt
               </li>
             )}
           </ul>
+        </section>
+
+        <section className="paper-panel rounded-[1.6rem] p-4 sm:p-5" aria-labelledby="event-notes-heading">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 id="event-notes-heading" className="display-font text-2xl font-semibold text-slate-900">Post-event notes</h2>
+              <p className="mt-1 text-sm text-slate-700">Share practical advice with future volunteers after completed events.</p>
+            </div>
+            <p className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-800" role="status" aria-live="polite">
+              {eventNoteDrafts.length > 0 ? `${eventNoteDrafts.length} events ready for notes` : "No eligible completed events yet"}
+            </p>
+          </div>
+
+          {noteStatusMessage ? (
+            <p
+              className={cn(
+                "mt-4 rounded-[1rem] border px-3 py-2 text-sm font-semibold",
+                noteStatusMessage.tone === "success"
+                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                  : "border-amber-300 bg-amber-50 text-amber-900"
+              )}
+              role="status"
+              aria-live="polite"
+            >
+              {noteStatusMessage.text}
+            </p>
+          ) : null}
+
+          {eventNoteDrafts.length > 0 ? (
+            <ul className="mt-4 space-y-3" aria-label="Post-event notes list">
+              {eventNoteDrafts.map((draftItem) => {
+                const textareaId = `event-note-${draftItem.applicationId}`;
+
+                return (
+                  <li key={`${draftItem.orgId}-${draftItem.eventName}`}>
+                    <article className="rounded-[1rem] border border-slate-200 bg-white p-3 sm:p-4">
+                      <p className="text-sm font-semibold text-slate-900">{draftItem.eventName}</p>
+                      <p className="mt-1 text-sm text-slate-700">Organization: {draftItem.organizationName || "Organization"}</p>
+
+                      <form action={submitVolunteerEventNote} className="mt-3 space-y-2">
+                        <input type="hidden" name="orgId" value={draftItem.orgId} />
+                        <input type="hidden" name="eventName" value={draftItem.eventName} />
+
+                        <label htmlFor={textareaId} className="block text-sm font-semibold text-slate-900">
+                          Your note for future volunteers
+                        </label>
+                        <textarea
+                          id={textareaId}
+                          name="noteText"
+                          defaultValue={draftItem.existingNote}
+                          rows={4}
+                          required
+                          minLength={8}
+                          placeholder="Example: I spent 2 hours on intake; it was faster to group supplies by task first."
+                          className="input-shell min-h-28"
+                        />
+
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs text-slate-600">Keep it practical: timing, setup, and what worked well.</p>
+                          <button type="submit" className="primary-action rounded-full px-4 py-2 text-xs font-semibold">
+                            {draftItem.existingNote ? "Update note" : "Save note"}
+                          </button>
+                        </div>
+                      </form>
+                    </article>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="mt-4 rounded-[1rem] border border-slate-200 bg-white p-4 text-sm text-slate-700">
+              Once you complete an accepted event and attendance is recorded, you can add notes here for future volunteers.
+            </p>
+          )}
         </section>
 
         <VolunteerApplicationsTabs

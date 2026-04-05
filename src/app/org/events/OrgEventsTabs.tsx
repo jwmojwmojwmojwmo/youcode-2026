@@ -10,12 +10,24 @@ type OrgEventRow = OrganizationEvent & {
   event_applications: { id: string; status: string }[];
 };
 
+type OrgEventNoteItem = {
+  id: string;
+  volunteerName: string;
+  noteText: string;
+  createdAt: string;
+};
+
 type OrgEventsTabsProps = {
   presentEvents: OrgEventRow[];
   pastEvents: OrgEventRow[];
+  eventNotesByEventName: Record<string, OrgEventNoteItem[]>;
 };
 
-export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTabsProps) {
+function toEventNameKey(eventName: string) {
+  return eventName.trim().toLowerCase();
+}
+
+export default function OrgEventsTabs({ presentEvents, pastEvents, eventNotesByEventName }: OrgEventsTabsProps) {
   const [activeTab, setActiveTab] = useState<"current" | "past">("current");
 
   return (
@@ -100,6 +112,7 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
               || application.status === APPLICATION_STATUSES.WAITLISTED
               || application.status === APPLICATION_STATUSES.NEEDS_SKILL_VERIFICATION
             )).length;
+            const eventNotes = eventNotesByEventName[toEventNameKey(event.title)] ?? [];
 
             return (
               <article key={event.id} className="rounded-[1.35rem] border border-slate-200 bg-white/85 p-4">
@@ -117,7 +130,29 @@ export default function OrgEventsTabs({ presentEvents, pastEvents }: OrgEventsTa
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
                   <span className="stamp-pill rounded-full px-3 py-1">{appliedCount} applied</span>
                   <span className="stamp-pill rounded-full px-3 py-1">{attendedCount} accepted</span>
+                  <span className="stamp-pill rounded-full px-3 py-1">{eventNotes.length} volunteer notes</span>
                   <span className="stamp-pill rounded-full px-3 py-1">Completed</span>
+                </div>
+
+                <div className="mt-4 rounded-[1rem] border border-slate-200 bg-slate-50/80 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">Volunteer notes</p>
+                  {eventNotes.length > 0 ? (
+                    <ul className="mt-2 space-y-2" aria-label={`Volunteer notes for ${event.title}`}>
+                      {eventNotes.map((note) => (
+                        <li key={note.id} className="rounded-[0.8rem] border border-slate-200 bg-white p-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">From {note.volunteerName}</p>
+                            <time className="text-xs text-slate-500" dateTime={note.createdAt}>
+                              {new Date(note.createdAt).toLocaleDateString()}
+                            </time>
+                          </div>
+                          <p className="mt-1 text-sm text-slate-700">{note.noteText}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-sm text-slate-600">No volunteer notes for this event yet.</p>
+                  )}
                 </div>
               </article>
             );

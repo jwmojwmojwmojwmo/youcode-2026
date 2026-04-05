@@ -15,6 +15,10 @@
   --accent-strong: #002f57;
   --accent-warm: #8c3f00;
   --accent-soft: #c2ddfb;
+  --texture-glow: rgba(255, 255, 255, 0.3);
+  --texture-glow-ink: rgba(18, 72, 118, 0.1);
+  --texture-line-strong: rgba(255, 255, 255, 0.16);
+  --texture-line-soft: rgba(24, 66, 102, 0.05);
   color-scheme: light;
 }
 
@@ -26,7 +30,12 @@ body {
   @apply min-h-screen antialiased;
   font-family: var(--font-body), "Segoe UI", "Segoe UI Variable", sans-serif;
   color: var(--foreground);
-  background: var(--background);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(78rem 38rem at -10% -8%, var(--texture-glow) 0%, transparent 58%),
+    radial-gradient(62rem 34rem at 108% 118%, var(--texture-glow-ink) 0%, transparent 60%),
+    repeating-linear-gradient(45deg, var(--texture-line-strong) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-45deg, var(--texture-line-soft) 0 1px, transparent 1px 18px);
   position: relative;
   overflow-x: hidden;
 }
@@ -42,11 +51,15 @@ body {
   --accent-strong: #0b7fc2;
   --accent-warm: #f5c04f;
   --accent-soft: rgba(89, 200, 255, 0.22);
+  --texture-glow: rgba(157, 211, 255, 0.06);
+  --texture-glow-ink: rgba(132, 193, 245, 0.07);
+  --texture-line-strong: rgba(164, 209, 245, 0.035);
+  --texture-line-soft: rgba(255, 255, 255, 0.022);
   color-scheme: dark;
 }
 
 .dark body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
 }
 
@@ -64,6 +77,12 @@ body::before {
 
 body::after {
   content: none;
+}
+
+@media (forced-colors: active) {
+  body {
+    background-image: none;
+  }
 }
 
 ::selection {

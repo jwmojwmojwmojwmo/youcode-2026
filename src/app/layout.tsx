@@ -18,9 +18,9 @@ export const metadata: Metadata = {
   title: "The Volunteer Hub",
   description: "The Volunteer Hub connects volunteers and organizations through event discovery, applications, and verified service tracking",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png"
+    icon: [{ url: "/logo.png?v=20260405", type: "image/png" }],
+    shortcut: [{ url: "/logo.png?v=20260405", type: "image/png" }],
+    apple: [{ url: "/logo.png?v=20260405", type: "image/png" }]
   }
 };
 

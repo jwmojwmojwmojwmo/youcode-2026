@@ -288,3 +288,27 @@ html:not(.dark) .input-shell {
 html:not(.dark) .input-shell::placeholder {
   color: #475569;
 }
+
+@media print {
+  body.print-target-only * {
+    visibility: hidden !important;
+  }
+
+  body.print-target-only [data-print-active="true"],
+  body.print-target-only [data-print-active="true"] * {
+    visibility: visible !important;
+  }
+
+  body.print-target-only [data-print-active="true"] {
+    display: block !important;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0 !important;
+    page-break-inside: avoid;
+  }
+
+  body.print-target-only {
+    background: #ffffff !important;
+  }
+}

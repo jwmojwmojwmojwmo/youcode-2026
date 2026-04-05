@@ -422,7 +422,7 @@ export default function VolunteerEventBrowser({ events, isSignedIn, profile, app
         />
 
         {activeEvent && isDetailsPanelOpen ? (
-          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[1200] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
+          <aside className="pointer-events-auto absolute inset-y-4 left-4 z-[120    0] w-[min(30rem,calc(100%-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <div className="flex h-full min-h-0 flex-col">
               <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:px-5 dark:border-slate-700">
                 <div className="min-w-0">
